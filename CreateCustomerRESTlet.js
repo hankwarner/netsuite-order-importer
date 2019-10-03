@@ -11,11 +11,11 @@ function(email, record, search) {
         try{
             log.audit("requestBody", requestBody);                    
             
-            if (requestBody.email == null || requestBody.email == "") {
+            if (!requestBody.hasOwnProperty("Email") || requestBody.Email == null || requestBody.Email == "") {
                throw new Error("Email is required");
 
             } else {
-               var customerEmail = requestBody.email;
+               var customerEmail = requestBody.Email;
             }
            
             // Check if customer exists
@@ -78,7 +78,6 @@ function(email, record, search) {
 				var customerId = customerSearchByEmailResults[0].getValue(customerSearchByEmail.columns[0]);
 				var sameDayShipping = customerSearchByEmailResults[0].getValue(customerSearchByEmail.columns[1]);
 				
-				log.audit("Customer created");
 				return [customerId, sameDayShipping];
 			}
 
@@ -89,16 +88,17 @@ function(email, record, search) {
     }
     
     function createCustomerRecord(requestBody){
-        try{
+    	log.audit("createCustomerRecord called");
+    	try{
             var customerRecord = record.create({ 
 				type: record.Type.CUSTOMER,
 				isDynamic: true
 			});
 
-			setCustomerFields(customerRecord, requestBody);
+			var customerName = setCustomerFields(customerRecord, requestBody);
 
-			setAddressFields(customerRecord, requestBody);
-			
+			setAddressFields(customerRecord, requestBody, customerName);
+
 			var customerId = customerRecord.save();
 
 			return customerId;
@@ -110,158 +110,186 @@ function(email, record, search) {
 	}
 
 	function setCustomerFields(customerRecord, requestBody){
-		setFieldValue(customerRecord, "email", requestBody.email);
-			
-		// Always default taxable to true
-		setFieldValue(customerRecord, "taxable", true);
+		try{
+			setFieldValue(customerRecord, "email", requestBody.Email);
 
-		if(requestBody.BillingFirstName == null || requestBody.BillingFirstName == ""){
-			throw new Error("BillingFirstName is required");
+			// Always default taxable to true
+			setFieldValue(customerRecord, "taxable", true);
 
-		} else {
-			var customerName = requestBody.BillingFirstName;
-			setFieldValue(customerRecord, "firstname", customerName);
-			
-			if(requestBody.BillingLastName != null && requestBody.BillingLastName != ""){
-				setFieldValue(customerRecord, "lastname", requestBody.BillingLastName);
-				customerName.concat(" " + requestBody.BillingLastName);
+			if(!requestBody.hasOwnProperty("BillingFirstName") || requestBody.BillingFirstName == null || requestBody.BillingFirstName == ""){
+				throw new Error("BillingFirstName is required");
+
+			} else {
+				var customerName = requestBody.BillingFirstName;
+				setFieldValue(customerRecord, "firstname", customerName);
+				
+				if(requestBody.hasOwnProperty("BillingLastName") && requestBody.BillingLastName != null && requestBody.BillingLastName != ""){
+					setFieldValue(customerRecord, "lastname", requestBody.BillingLastName);
+					customerName = customerName.concat(" " + requestBody.BillingLastName);
+
+				} else {
+					// If last name is not provided, NetSuite will throw an error on record save. So we use first name twice.
+					setFieldValue(customerRecord, "lastname", requestBody.BillingFirstName);
+				}
+				
+				setFieldValue(customerRecord, "altname", customerName);
+			}
+
+			if(!requestBody.hasOwnProperty("Department") || requestBody.Department == null || requestBody.Department == ""){
+				// Default to D2C if department value is not passed
+				setFieldValue(customerRecord, "custentity6", "27");
+
+			} else {
+				setFieldValue(customerRecord, "custentity6", requestBody.Department);
+			}
+
+			// Optional fields
+			if(!requestBody.hasOwnProperty("Category") || requestBody.Category == null || requestBody.Category == ""){
+				// Default to Homeowner if value is not passed
+				setFieldValue(customerRecord, "category", "2");
+
+			} else {
+				var customerCategory = requestBody.Category;
+				setFieldValue(customerRecord, "category", customerCategory);
 			}
 			
-			setFieldValue(customerRecord, "altname", customerName);
-		}
+			if(requestBody.hasOwnProperty("SiteOrderNumber") && requestBody.SiteOrderNumber != null && requestBody.SiteOrderNumber != ""){
+				var orderNumber = requestBody.SiteOrderNumber;
+				var entityId = "CUST".concat(orderNumber);
+				setFieldValue(customerRecord, "entityid", entityId);
+			}
 
-		if(requestBody.Department == null || requestBody.Department == ""){
-			// Default to D2C if department value is not passed
-			setFieldValue(customerRecord, "custentity6", "27");
+			if(requestBody.hasOwnProperty("PhoneNumber") && requestBody.PhoneNumber != null && requestBody.PhoneNumber != ""){
+				setFieldValue(customerRecord, "phone", requestBody.PhoneNumber);
+			}
 
-		} else {
-			setFieldValue(customerRecord, "custentity6", requestBody.Department);
-		}
+			if(requestBody.hasOwnProperty("Company") && requestBody.Company != null && requestBody.Company != ""){
+				setFieldValue(customerRecord, "companyname", requestBody.Company);
+			}
 
-		// Optional fields
-		if(!requestBody.hasOwnProperty("Category")){
-			// Default to Homeowner if value is not passed
-			setFieldValue(customerRecord, "category", "2");
+			if(requestBody.hasOwnProperty("SameDayShipping") && requestBody.SameDayShipping != null && requestBody.SameDayShipping != ""){
+				setFieldValue(customerRecord, "custentity7", requestBody.SameDayShipping);
+			}
 
-		} else {
-			var customerCategory = requestBody.Category;
-			setFieldValue(customerRecord, "category", customerCategory);
-		}
-		
-		if(requestBody.SiteOrderNumber != null && requestBody.SiteOrderNumber != ""){
-			var orderNumber = requestBody.SiteOrderNumber;
-			var entityId = "CUST".concat(orderNumber);
-			setFieldValue(customerRecord, "entityid", entityId);
-		}
+			return customerName;
 
-		if(requestBody.PhoneNumber != null && requestBody.PhoneNumber != ""){
-			setFieldValue(customerRecord, "phone", requestBody.PhoneNumber);
-		}
+		} catch(err){
+			log.error("Error in setCustomerFields ", err);
 
-		if(requestBody.Company != null && requestBody.Company != ""){
-			setFieldValue(customerRecord, "companyname", requestBody.Company);
-		}
-
-		if(requestBody.SameDayShipping != null && requestBody.SameDayShipping != ""){
-			setFieldValue(customerRecord, "custentity7", requestBody.SameDayShipping);
+			// Fatal error
+			if(err.message == "BillingFirstName is required"){
+				throw err;
+			}
 		}
 	}
 
-	function setAddressFields(customerRecord, requestBody){
-		customerRecord.selectNewLine({ 
-			sublistId: "addressbook" 
-		});
-		var addressSubrecord = customerRecord.getCurrentSublistSubrecord({
-			sublistId: "addressbook",
-			fieldId: "addressbookaddress"
-		});
-
-		// Billing address fields
-		setFieldValue(addressSubrecord, "addressee", customerName);
-		
-		if(requestBody.BillingLine1 != null && requestBody.BillingLine1 != ""){
-			setFieldValue(addressSubrecord, "addr1", requestBody.BillingLine1);
-		}
-
-		if(requestBody.BillingLine2 != null && requestBody.BillingLine2 != ""){
-			setFieldValue(addressSubrecord, "addr2", requestBody.BillingLine2);
-		}
-		
-		if(requestBody.BillingCity != null && requestBody.BillingCity != ""){
-			setFieldValue(addressSubrecord, "city", requestBody.BillingCity);
-		}
-		
-		if(requestBody.BillingState != null && requestBody.BillingState != ""){
-			setFieldValue(addressSubrecord, "state", requestBody.BillingState);
-		}
-		
-		if(requestBody.BillingZip != null && requestBody.BillingZip != ""){
-			setFieldValue(addressSubrecord, "zip", requestBody.BillingZip);
-		}
-
-		// If shipping address is null or the same as billing, set billing address as the shipping address
-		if((requestBody.ShippingLine1 == null || requestBody.ShippingLine1 == "")  || (requestBody.ShippingLine1 == requestBody.BillingLine1)){
-			setFieldValue(addressSubrecord, "defaultbilling", true);
-			setFieldValue(addressSubrecord, "defaultshipping", true);
-
-			customerRecord.commitLine({
-				sublistId: "addressbook"
-			});
-
-		} else {
-			setFieldValue(addressSubrecord, "defaultbilling", true);
-
-			// Commit the previous line
-			customerRecord.commitLine({
-				sublistId: "addressbook"
-			});
-
-			// Create a new subrecord
+	function setAddressFields(customerRecord, requestBody, customerName){
+		try{
 			customerRecord.selectNewLine({ 
 				sublistId: "addressbook" 
 			});
-			addressSubrecord = customerRecord.getCurrentSublistSubrecord({
+			var addressSubrecord = customerRecord.getCurrentSublistSubrecord({
 				sublistId: "addressbook",
 				fieldId: "addressbookaddress"
 			});
-
-			// Set Shipping Address fields
-			setFieldValue(addressSubrecord, "addr1", requestBody.ShippingLine1);
-
-			// If no shipping name is provided, use the billing name
-			if(requestBody.ShippingFirstName == null || requestBody.ShippingFirstName == ""){
-				setFieldValue(addressSubrecord, "addressee", customerName);
-
+	
+			// Billing address fields
+			setFieldValue(addressSubrecord, "addressee", customerName);
+			
+			if(requestBody.BillingLine1 != null && requestBody.BillingLine1 != ""){
+				setFieldValue(addressSubrecord, "addr1", requestBody.BillingLine1);
+			}
+	
+			if(requestBody.BillingLine2 != null && requestBody.BillingLine2 != ""){
+				setFieldValue(addressSubrecord, "addr2", requestBody.BillingLine2);
+			}
+			
+			if(requestBody.BillingCity != null && requestBody.BillingCity != ""){
+				setFieldValue(addressSubrecord, "city", requestBody.BillingCity);
+			}
+			
+			if(requestBody.BillingState != null && requestBody.BillingState != ""){
+				setFieldValue(addressSubrecord, "state", requestBody.BillingState);
+			}
+			
+			if(requestBody.BillingZip != null && requestBody.BillingZip != ""){
+				setFieldValue(addressSubrecord, "zip", requestBody.BillingZip);
+			}
+	
+			// ** SHIPPING ADDRESS **
+			// If shipping address is null or the same as billing, set billing address as the shipping address
+			if((requestBody.ShippingLine1 == null || requestBody.ShippingLine1 == "")  || (requestBody.ShippingLine1 == requestBody.BillingLine1)){
+				setFieldValue(addressSubrecord, "defaultbilling", true);
+				setFieldValue(addressSubrecord, "defaultshipping", true);
+	
+				customerRecord.commitLine({
+					sublistId: "addressbook"
+				});
+	
 			} else {
-				var shippingName = requestBody.ShippingFirstName;
-
-				// Check if shipping last name exists
-				if(requestBody.ShippingLastName != null && requestBody.ShippingLastName != ""){
-					shippingName.concat(" " + requestBody.ShippingLastName);
+				setFieldValue(addressSubrecord, "defaultbilling", true);
+				setFieldValue(addressSubrecord, "defaultshipping", false);
+	
+				// Commit the previous line
+				customerRecord.commitLine({
+					sublistId: "addressbook"
+				});
+	
+				// Create a new subrecord
+				customerRecord.selectNewLine({
+					sublistId: "addressbook" 
+				});
+				addressSubrecord = customerRecord.getCurrentSublistSubrecord({
+					sublistId: "addressbook",
+					fieldId: "addressbookaddress"
+				});
+	
+				// Set Shipping Address fields
+				setFieldValue(addressSubrecord, "addr1", requestBody.ShippingLine1);
+	
+				// If no shipping name is provided, use the billing name
+				if(requestBody.ShippingFirstName == null || requestBody.ShippingFirstName == ""){
+					setFieldValue(addressSubrecord, "addressee", customerName);
+	
+				} else {
+					var shippingName = requestBody.ShippingFirstName;
+	
+					// Check if shipping last name exists
+					if(requestBody.ShippingLastName != null && requestBody.ShippingLastName != ""){
+						shippingName.concat(" " + requestBody.ShippingLastName);
+					}
+	
+					setFieldValue(addressSubrecord, "addressee", shippingName);
 				}
+	
+				if(requestBody.ShippingLine2 != null && requestBody.ShippingLine2 != ""){
+					setFieldValue(addressSubrecord, "addr2", requestBody.ShippingLine2);
+				}
+				
+				if(requestBody.ShippingCity != null && requestBody.ShippingCity != ""){
+					setFieldValue(addressSubrecord, "city", requestBody.ShippingCity);
+				}
+				
+				if(requestBody.ShippingState != null && requestBody.ShippingState != ""){
+					setFieldValue(addressSubrecord, "state", requestBody.ShippingState);
+				}
+				
+				if(requestBody.ShippingZip != null && requestBody.ShippingZip != ""){
+					setFieldValue(addressSubrecord, "zip", requestBody.ShippingZip);
+				}
+				
+				setFieldValue(addressSubrecord, "defaultbilling", false);
+				setFieldValue(addressSubrecord, "defaultshipping", true);
+	
+				customerRecord.commitLine({
+					sublistId: "addressbook"
+				});
+			}
+	
+			return;
 
-				setFieldValue(addressSubrecord, "addressee", shippingName);
-			}
-
-			if(requestBody.ShippingLine2 != null && requestBody.ShippingLine2 != ""){
-				setFieldValue(addressSubrecord, "addr2", requestBody.ShippingLine2);
-			}
-			
-			if(requestBody.ShippingCity != null && requestBody.ShippingCity != ""){
-				setFieldValue(addressSubrecord, "city", requestBody.ShippingCity);
-			}
-			
-			if(requestBody.ShippingState != null && requestBody.ShippingState != ""){
-				setFieldValue(addressSubrecord, "state", requestBody.ShippingState);
-			}
-			
-			if(requestBody.ShippingZip != null && requestBody.ShippingZip != ""){
-				setFieldValue(addressSubrecord, "zip", requestBody.ShippingZip);
-			}
-
-			customerRecord.commitLine({
-				sublistId: "addressbook"
-			});
+		} catch(err) {
+			log.error("Error in setAddressFields ", err);
 		}
 	}
 	
