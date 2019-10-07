@@ -77,7 +77,6 @@ function(email, record, search, accounting) {
             for (var index in items) {
                 items[index].existing = false;
             }
-            log.audit("buildItemObject result", items);
             return items;
 
         } catch(err){
@@ -90,13 +89,15 @@ function(email, record, search, accounting) {
         var itemCount = salesOrderRecord.getLineCount('item');
         
         for (var i = 0; i < itemCount; i++) {
-            var itemId = salesOrderRecord.getSublistValue({ sublistId: 'item', fieldId: 'item', line: i });
-            var quantity = salesOrderRecord.getSublistValue({ sublistId: 'item', fieldId: 'quantity', line: i });
+            var itemIdInNetSuite = salesOrderRecord.getSublistValue({ sublistId: 'item', fieldId: 'item', line: i });
+            var quantityInNetSuite = salesOrderRecord.getSublistValue({ sublistId: 'item', fieldId: 'quantity', line: i });
 
             for (var index in items) {
                 var item = items[index];
-                if (!item.existing && item.ItemId == itemId && item.Quantity == quantity) {
-                    items[index].existing = true;
+                var itemIdOnLineItem = getItemId(item);
+                
+                if (!item.existing && itemIdOnLineItem == itemIdInNetSuite && item.Quantity == quantityInNetSuite) {
+                	item.existing = true;
                 }
             }
         }
@@ -108,10 +109,6 @@ function(email, record, search, accounting) {
         try {
             // Default taxable to true
         	setFieldValue(salesOrderRecord, "istaxable", true);
-        	
-        	// Set tax rate
-            var taxRate = getTaxRate(requestBody);
-            setFieldValue(salesOrderRecord, "taxrate", taxRate);
         	
         	if(!requestBody.hasOwnProperty("PaymentMethodId") || requestBody.PaymentMethodId == null || requestBody.PaymentMethodId == ""){
             	// Set to Cash if payment method is not provided
@@ -228,10 +225,7 @@ function(email, record, search, accounting) {
 
             // Add line items
             for (var index in items) {
-                log.debug("items", items);
-                log.debug("index", index);
             	var lineItem = items[index];
-            	log.debug("lineItem", lineItem);
 
                 if(lineItem.existing){
                     continue;
@@ -240,11 +234,13 @@ function(email, record, search, accounting) {
                 salesOrderRecord.selectNewLine({
                     sublistId: 'item'
                 });
+                
+                var itemId = getItemId(lineItem);
 
                 salesOrderRecord.setCurrentSublistValue({
                     sublistId: 'item',
                     fieldId: 'item',
-                    value: lineItem.ItemId
+                    value: itemId
                 });
 
                 salesOrderRecord.setCurrentSublistValue({
@@ -316,24 +312,6 @@ function(email, record, search, accounting) {
             log.error("Error in setSalesOrderValues", err);
             throw err;
         }
-    }
-    
-    function getTaxRate(requestBody){
-    	try {
-    		var taxTotal = Number(requestBody.TaxTotal);
-        	var total = Number(requestBody.Total);
-        	log.debug("taxTotal", taxTotal);
-        	log.debug("total", total);
-        	
-        	var taxRate = accounting.toFixed(taxTotal / ((total - taxTotal) * 100), 2);
-        	log.debug("before toFixed", (taxTotal / ((total - taxTotal) * 100)));
-        	log.debug("taxRate", taxRate);
-        	
-        	return taxRate;
-        	
-    	} catch(err){
-    		log.error("Error in getTaxRate", err);
-    	}
     }
 
     function setBillingAddress(salesOrderRecord, requestBody){
@@ -420,6 +398,23 @@ function(email, record, search, accounting) {
 			log.error("Error in setShippingAddress ", err);
 		}
 	}
+	
+	function getItemId(lineItem){
+		// The item's internal ID will potentially be in two places: ItemId or CustomNetSuiteID, so we check both
+		var itemId;
+		
+		if(lineItem.hasOwnProperty("ItemId") && lineItem.ItemId != null && lineItem.ItemId != ""){
+        	itemId = lineItem.ItemId;
+        		
+        } else if(lineItem.hasOwnProperty("CustomNetSuiteID") && lineItem.CustomNetSuiteID != null && lineItem.CustomNetSuiteID != ""){
+        	itemId = lineItem.CustomNetSuiteID;
+        	
+        } else {
+        	throw new Error("No item id was found on line item: ", lineItem);
+        }
+		
+		return itemId;
+	}
 
     function mapShippingValues(shippingMethodName){
         shippingMethodName = shippingMethodName.toLowerCase();
@@ -501,18 +496,15 @@ function(email, record, search, accounting) {
     
     function formatDate(dateString){
     	// NetSuite needs a Z at the end of the date string or it new Date function will not work
-    	// If the last character is not a Z, add it to the end
-    	log.debug("formatDate called");
-    	log.debug("dateString", dateString);
     	var lastCharacter = dateString.slice(-1);
-    	log.debug("lastCharacter", lastCharacter);
+    	
+    	// If the last character is not a Z, add it to the end
     	if(lastCharacter != "Z"){
     		dateString = dateString.concat("Z");
-    		log.debug("dateString after concat", dateString);
     	}
     	
     	var date = new Date(dateString);
-    	log.debug("date", date);
+
     	return date;
 	}
     

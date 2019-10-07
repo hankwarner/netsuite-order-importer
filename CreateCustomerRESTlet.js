@@ -9,7 +9,7 @@ function(email, record, search) {
 
     function doPost(requestBody) {
         try{
-            log.audit("requestBody", requestBody);                    
+            log.audit("requestBody", requestBody);
             
             if (!requestBody.hasOwnProperty("Email") || requestBody.Email == null || requestBody.Email == "") {
                throw new Error("Email is required");
@@ -97,7 +97,7 @@ function(email, record, search) {
 
 			setAddressFields(customerRecord, requestBody, customerName);
 
-			var customerId = customerRecord.save();
+			var customerId = customerRecord.save().toString();
 
 			return customerId;
             
@@ -116,7 +116,7 @@ function(email, record, search) {
 			setFieldValue(customerRecord, "taxitem", "1990053"); // AVATAX
 			
 			// Default isPerson to true
-			setFieldValue(customerRecord, "isperson", true);
+			setFieldValue(customerRecord, "isperson", "T");
 
 			if(!requestBody.hasOwnProperty("BillingFirstName") || requestBody.BillingFirstName == null || requestBody.BillingFirstName == ""){
 				throw new Error("BillingFirstName is required");
