@@ -43,7 +43,7 @@ function(record, search, teamsLog) {
         } catch(err){
 			log.error("Error in CreateCustomerRESTlet doPost ", err);
 			var data = {
-				title: "Error in CreateCustomerRESTlet doPost",
+				from: "Error in CreateCustomerRESTlet doPost",
 				message: err.message,
 				color: "red"
 			}
@@ -234,7 +234,7 @@ function(record, search, teamsLog) {
 		} catch(err) {
 			log.error("Error in setAddressFields ", err);
 			var data = {
-				title: "Error in CreateCustomerRESTlet setAddressFields",
+				from: "Error in CreateCustomerRESTlet setAddressFields",
 				message: err.message,
 				color: "yellow"
 			}
@@ -296,7 +296,7 @@ function(record, search, teamsLog) {
 		} catch(err){
 			log.error("Error in createShippingAddress ", err);
 			var data = {
-				title: "Error in CreateCustomerRESTlet createShippingAddress",
+				from: "Error in CreateCustomerRESTlet createShippingAddress",
 				message: err.message,
 				color: "yellow"
 			}
@@ -317,7 +317,7 @@ function(record, search, teamsLog) {
 		} catch(err){
 			log.error("Error in setFieldValue ", err);
 			var data = {
-				title: "Error in CreateCustomerRESTlet setFieldValue",
+				from: "Error in CreateCustomerRESTlet setFieldValue",
 				message: err.message,
 				color: "yellow"
 			}
