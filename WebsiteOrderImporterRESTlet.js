@@ -74,7 +74,7 @@ function(record, search, teamsLog) {
         } catch(err){
         	log.error("Error in WebsiteOrderImporterRESTlet", err);
         	var data = {
-				title: "Error in WebsiteOrderImporterRESTlet",
+				from: "Error in WebsiteOrderImporterRESTlet",
 				message: err.message,
 				color: "red"
 			}
@@ -377,7 +377,7 @@ function(record, search, teamsLog) {
 		} catch(err) {
 			log.error("Error in setBillingAddress", err);
 			var data = {
-				title: "Error in WebsiteOrderImporterRESTlet setBillingAddress",
+				from: "Error in WebsiteOrderImporterRESTlet setBillingAddress",
 				message: err.message,
 				color: "yellow"
 			}
@@ -427,7 +427,7 @@ function(record, search, teamsLog) {
 		} catch(err){
 			log.error("Error in setShippingAddress ", err);
 			var data = {
-				title: "Error in WebsiteOrderImporterRESTlet setShippingAddress",
+				from: "Error in WebsiteOrderImporterRESTlet setShippingAddress",
 				message: err.message,
 				color: "yellow"
 			}
@@ -547,7 +547,7 @@ function(record, search, teamsLog) {
     	} catch(err){
     		log.error("Error in formatDate", err);
 			var data = {
-				title: "Error in WebsiteOrderImporterRESTlet setBillingAddress",
+				from: "Error in WebsiteOrderImporterRESTlet setBillingAddress",
 				message: err.message,
 				color: "yellow"
 			}
