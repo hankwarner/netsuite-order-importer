@@ -9,7 +9,7 @@ function(email, record, search) {
 
     function doPost(requestBody) {
         try{
-            log.audit("requestBody", requestBody);                    
+            log.audit("requestBody", requestBody);
             
             if (!requestBody.hasOwnProperty("Email") || requestBody.Email == null || requestBody.Email == "") {
                throw new Error("Email is required");
@@ -36,8 +36,6 @@ function(email, record, search) {
 			   customerId: customerId,
 			   sameDayShipping: sameDayShipping
 			};
-			
-			response = JSON.stringify(response);
 
             return response;
 
@@ -99,7 +97,7 @@ function(email, record, search) {
 
 			setAddressFields(customerRecord, requestBody, customerName);
 
-			var customerId = customerRecord.save();
+			var customerId = customerRecord.save().toString();
 
 			return customerId;
             
@@ -113,8 +111,12 @@ function(email, record, search) {
 		try{
 			setFieldValue(customerRecord, "email", requestBody.Email);
 
-			// Always default taxable to true
+			// Always default taxable to true and taxitem to AVATAX
 			setFieldValue(customerRecord, "taxable", true);
+			setFieldValue(customerRecord, "taxitem", "1990053"); // AVATAX
+			
+			// Default isPerson to true
+			setFieldValue(customerRecord, "isperson", "T");
 
 			if(!requestBody.hasOwnProperty("BillingFirstName") || requestBody.BillingFirstName == null || requestBody.BillingFirstName == ""){
 				throw new Error("BillingFirstName is required");
@@ -144,19 +146,12 @@ function(email, record, search) {
 			}
 
 			// Optional fields
-			if(!requestBody.hasOwnProperty("Category") || requestBody.Category == null || requestBody.Category == ""){
+			if(!requestBody.hasOwnProperty("UserTypeId") || requestBody.UserTypeId == null || requestBody.UserTypeId == ""){
 				// Default to Homeowner if value is not passed
 				setFieldValue(customerRecord, "category", "2");
 
 			} else {
-				var customerCategory = requestBody.Category;
-				setFieldValue(customerRecord, "category", customerCategory);
-			}
-			
-			if(requestBody.hasOwnProperty("SiteOrderNumber") && requestBody.SiteOrderNumber != null && requestBody.SiteOrderNumber != ""){
-				var orderNumber = requestBody.SiteOrderNumber;
-				var entityId = "CUST".concat(orderNumber);
-				setFieldValue(customerRecord, "entityid", entityId);
+				setFieldValue(customerRecord, "category", requestBody.UserTypeId);
 			}
 
 			if(requestBody.hasOwnProperty("PhoneNumber") && requestBody.PhoneNumber != null && requestBody.PhoneNumber != ""){
@@ -196,100 +191,94 @@ function(email, record, search) {
 			// Billing address fields
 			setFieldValue(addressSubrecord, "addressee", customerName);
 			
-			if(requestBody.BillingLine1 != null && requestBody.BillingLine1 != ""){
+			if(requestBody.hasOwnProperty("BillingLine1") && requestBody.BillingLine1 != null && requestBody.BillingLine1 != ""){
 				setFieldValue(addressSubrecord, "addr1", requestBody.BillingLine1);
 			}
 	
-			if(requestBody.BillingLine2 != null && requestBody.BillingLine2 != ""){
+			if(requestBody.hasOwnProperty("BillingLine2") && requestBody.BillingLine2 != null && requestBody.BillingLine2 != ""){
 				setFieldValue(addressSubrecord, "addr2", requestBody.BillingLine2);
 			}
 			
-			if(requestBody.BillingCity != null && requestBody.BillingCity != ""){
+			if(requestBody.hasOwnProperty("BillingCity") && requestBody.BillingCity != null && requestBody.BillingCity != ""){
 				setFieldValue(addressSubrecord, "city", requestBody.BillingCity);
 			}
 			
-			if(requestBody.BillingState != null && requestBody.BillingState != ""){
+			if(requestBody.hasOwnProperty("BillingState") && requestBody.BillingState != null && requestBody.BillingState != ""){
 				setFieldValue(addressSubrecord, "state", requestBody.BillingState);
 			}
 			
-			if(requestBody.BillingZip != null && requestBody.BillingZip != ""){
+			if(requestBody.hasOwnProperty("BillingZip") && requestBody.BillingZip != null && requestBody.BillingZip != ""){
 				setFieldValue(addressSubrecord, "zip", requestBody.BillingZip);
 			}
+
+			customerRecord.commitLine({
+				sublistId: "addressbook"
+			});
 	
-			// ** SHIPPING ADDRESS **
-			// If shipping address is null or the same as billing, set billing address as the shipping address
-			if((requestBody.ShippingLine1 == null || requestBody.ShippingLine1 == "")  || (requestBody.ShippingLine1 == requestBody.BillingLine1)){
-				setFieldValue(addressSubrecord, "defaultbilling", true);
-				setFieldValue(addressSubrecord, "defaultshipping", true);
-	
-				customerRecord.commitLine({
-					sublistId: "addressbook"
-				});
-	
-			} else {
-				setFieldValue(addressSubrecord, "defaultbilling", true);
-				setFieldValue(addressSubrecord, "defaultshipping", false);
-	
-				// Commit the previous line
-				customerRecord.commitLine({
-					sublistId: "addressbook"
-				});
-	
-				// Create a new subrecord
-				customerRecord.selectNewLine({
-					sublistId: "addressbook" 
-				});
-				addressSubrecord = customerRecord.getCurrentSublistSubrecord({
-					sublistId: "addressbook",
-					fieldId: "addressbookaddress"
-				});
-	
-				// Set Shipping Address fields
-				setFieldValue(addressSubrecord, "addr1", requestBody.ShippingLine1);
-	
-				// If no shipping name is provided, use the billing name
-				if(requestBody.ShippingFirstName == null || requestBody.ShippingFirstName == ""){
-					setFieldValue(addressSubrecord, "addressee", customerName);
-	
-				} else {
-					var shippingName = requestBody.ShippingFirstName;
-	
-					// Check if shipping last name exists
-					if(requestBody.ShippingLastName != null && requestBody.ShippingLastName != ""){
-						shippingName.concat(" " + requestBody.ShippingLastName);
-					}
-	
-					setFieldValue(addressSubrecord, "addressee", shippingName);
-				}
-	
-				if(requestBody.ShippingLine2 != null && requestBody.ShippingLine2 != ""){
-					setFieldValue(addressSubrecord, "addr2", requestBody.ShippingLine2);
-				}
-				
-				if(requestBody.ShippingCity != null && requestBody.ShippingCity != ""){
-					setFieldValue(addressSubrecord, "city", requestBody.ShippingCity);
-				}
-				
-				if(requestBody.ShippingState != null && requestBody.ShippingState != ""){
-					setFieldValue(addressSubrecord, "state", requestBody.ShippingState);
-				}
-				
-				if(requestBody.ShippingZip != null && requestBody.ShippingZip != ""){
-					setFieldValue(addressSubrecord, "zip", requestBody.ShippingZip);
-				}
-				
-				setFieldValue(addressSubrecord, "defaultbilling", false);
-				setFieldValue(addressSubrecord, "defaultshipping", true);
-	
-				customerRecord.commitLine({
-					sublistId: "addressbook"
-				});
-			}
+			// If shipping address exists and is not the same as billing address, create a new address subrecord
+			if(requestBody.hasOwnProperty("ShippingLine1") && requestBody.hasOwnProperty("BillingLine1") && requestBody.ShippingLine1 != null && requestBody.ShippingLine1 != "" && requestBody.ShippingLine1 != requestBody.BillingLine1){
+				createShippingAddress(customerRecord, requestBody, customerName);
+			}	
 	
 			return;
 
 		} catch(err) {
 			log.error("Error in setAddressFields ", err);
+		}
+	}
+
+	function createShippingAddress(customerRecord, requestBody, billingName){
+		try {
+			customerRecord.selectNewLine({
+				sublistId: "addressbook" 
+			});
+			var addressSubrecord = customerRecord.getCurrentSublistSubrecord({
+				sublistId: "addressbook",
+				fieldId: "addressbookaddress"
+			});
+	
+			// Set Shipping Address fields
+			setFieldValue(addressSubrecord, "addr1", requestBody.ShippingLine1);
+	
+			// If no shipping name is provided, use the billing name
+			if(!requestBody.hasOwnProperty("ShippingFirstName") || requestBody.ShippingFirstName == null || requestBody.ShippingFirstName == ""){
+				setFieldValue(addressSubrecord, "addressee", billingName);
+	
+			} else {
+				var shippingName = requestBody.ShippingFirstName;
+	
+				// Check if shipping last name exists
+				if(requestBody.hasOwnProperty("ShippingLastName") && requestBody.ShippingLastName != null && requestBody.ShippingLastName != ""){
+					shippingName = shippingName.concat(" " + requestBody.ShippingLastName);
+				}
+	
+				setFieldValue(addressSubrecord, "addressee", shippingName);
+			}
+	
+			if(requestBody.hasOwnProperty("ShippingLine2") && requestBody.ShippingLine2 != null && requestBody.ShippingLine2 != ""){
+				setFieldValue(addressSubrecord, "addr2", requestBody.ShippingLine2);
+			}
+			
+			if(requestBody.hasOwnProperty("ShippingCity") && requestBody.ShippingCity != null && requestBody.ShippingCity != ""){
+				setFieldValue(addressSubrecord, "city", requestBody.ShippingCity);
+			}
+			
+			if(requestBody.hasOwnProperty("ShippingState") && requestBody.ShippingState != null && requestBody.ShippingState != ""){
+				setFieldValue(addressSubrecord, "state", requestBody.ShippingState);
+			}
+			
+			if(requestBody.hasOwnProperty("ShippingZip") && requestBody.ShippingZip != null && requestBody.ShippingZip != ""){
+				setFieldValue(addressSubrecord, "zip", requestBody.ShippingZip);
+			}
+	
+			customerRecord.commitLine({
+				sublistId: "addressbook"
+			});
+	
+			return;
+
+		} catch(err){
+			log.error("Error in createShippingAddress ", err);
 		}
 	}
 	
