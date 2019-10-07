@@ -229,7 +229,7 @@ function(record, search, teamsLog) {
                 } else {
                     shippingCarrier = "nonups";
                 }
-
+                log.debug("shippingCarrier", shippingCarrier);
                 setFieldValue(salesOrderRecord, "shipcarrier", shippingCarrier);
 
                 var shippingMethodId = mapShippingValues(shippingMethodName);
@@ -528,6 +528,13 @@ function(record, search, teamsLog) {
 
 		} catch(err){
 			log.error("Error in setFieldValue ", err);
+			var data = {
+				from: "Error in WebsiteOrderImporterRESTlet setFieldValue",
+				message: "fieldId: " + fieldId + "value: " + value + " Error msg: " + err.message,
+				color: "yellow"
+			}
+        	
+        	teamsLog.log(data, teamsUrl);
 		}
 	}
     
@@ -540,7 +547,6 @@ function(record, search, teamsLog) {
         	if(lastCharacter != "Z"){
         		dateString = dateString.concat("Z");
         	}
-        	
         	var date = new Date(dateString);
 
         	return date;
