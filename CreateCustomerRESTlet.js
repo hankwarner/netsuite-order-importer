@@ -3,10 +3,11 @@
  * @NScriptType Restlet
  * @NModuleScope SameAccount
  */
-define(['N/email', 'N/record', 'N/search'],
+define(['N/record', 'N/search', 'S/teamslog.js'],
 
-function(email, record, search) {
-
+function(record, search, teamsLog) {
+	const teamsUrl = "https://outlook.office.com/webhook/ccaff0e4-631a-4421-b57a-c899e744d60f@3c2f8435-994c-4552-8fe8-2aec2d0822e4/IncomingWebhook/9627607123264385b536d2c1ff1dbd4b/f69cfaae-e768-453b-8323-13e5bcff563f";
+	
     function doPost(requestBody) {
         try{
             log.audit("requestBody", requestBody);
@@ -40,7 +41,15 @@ function(email, record, search) {
             return response;
 
         } catch(err){
-			log.error("Error in doPost ", err);
+			log.error("Error in CreateCustomerRESTlet doPost ", err);
+			var data = {
+				title: "Error in CreateCustomerRESTlet doPost",
+				message: err.message,
+				color: "red"
+			}
+        	
+        	teamsLog.log(data, teamsUrl);
+			
 			return err;
         }
     }
@@ -224,6 +233,13 @@ function(email, record, search) {
 
 		} catch(err) {
 			log.error("Error in setAddressFields ", err);
+			var data = {
+				title: "Error in CreateCustomerRESTlet setAddressFields",
+				message: err.message,
+				color: "yellow"
+			}
+        	
+        	teamsLog.log(data, teamsUrl);
 		}
 	}
 
@@ -279,6 +295,13 @@ function(email, record, search) {
 
 		} catch(err){
 			log.error("Error in createShippingAddress ", err);
+			var data = {
+				title: "Error in CreateCustomerRESTlet createShippingAddress",
+				message: err.message,
+				color: "yellow"
+			}
+        	
+        	teamsLog.log(data, teamsUrl);
 		}
 	}
 	
@@ -293,6 +316,13 @@ function(email, record, search) {
 
 		} catch(err){
 			log.error("Error in setFieldValue ", err);
+			var data = {
+				title: "Error in CreateCustomerRESTlet setFieldValue",
+				message: err.message,
+				color: "yellow"
+			}
+        	
+        	teamsLog.log(data, teamsUrl);
 		}
 	}
 });

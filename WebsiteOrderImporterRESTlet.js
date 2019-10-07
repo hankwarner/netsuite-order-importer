@@ -3,10 +3,11 @@
  * @NScriptType Restlet
  * @NModuleScope SameAccount
  */
-define(['N/email', 'N/record', 'N/search', 'S/accounting'],
+define(['N/record', 'N/search', 'S/teamslog.js'],
 
-function(email, record, search, accounting) {
-
+function(record, search, teamsLog) {
+	const teamsUrl = "https://outlook.office.com/webhook/ccaff0e4-631a-4421-b57a-c899e744d60f@3c2f8435-994c-4552-8fe8-2aec2d0822e4/IncomingWebhook/9627607123264385b536d2c1ff1dbd4b/f69cfaae-e768-453b-8323-13e5bcff563f";
+	
     function doPost(requestBody) {
         try{
             log.audit("requestBody", requestBody);
@@ -29,9 +30,17 @@ function(email, record, search, accounting) {
             */
             if(requestBody.hasOwnProperty("RelatedEstimate") && requestBody.RelatedEstimate != null && requestBody.RelatedEstimate != ""){
             	log.audit("has related estimate", requestBody.RelatedEstimate);
+            	
+            	// Split RelatedEstimate value to get the estimate internal ID
+            	if(requestBody.RelatedEstimate.indexOf("|") != -1){
+            		var relatedEstimateId = requestBody.RelatedEstimate.split("|")[1];
+            	} else {
+            		var relatedEstimateId = requestBody.RelatedEstimate;
+            	}
+            	
             	var salesOrderRecord = record.transform({
                     fromType: record.Type.ESTIMATE,
-		            fromId: requestBody.RelatedEstimate,
+		            fromId: relatedEstimateId,
 		            toType: record.Type.SALES_ORDER,
                     isDynamic: true
                 });
@@ -63,7 +72,15 @@ function(email, record, search, accounting) {
             return response;
 
         } catch(err){
-            // Email Suitesquad and/or log to Teams
+        	log.error("Error in WebsiteOrderImporterRESTlet", err);
+        	var data = {
+				title: "Error in WebsiteOrderImporterRESTlet",
+				message: err.message,
+				color: "red"
+			}
+        	
+        	teamsLog.log(data, teamsUrl);
+        	
             return err;
         }
     }
@@ -86,23 +103,29 @@ function(email, record, search, accounting) {
     };
 
     function checkItemsOnRelatedEstimate(salesOrderRecord, items) {
-        var itemCount = salesOrderRecord.getLineCount('item');
-        
-        for (var i = 0; i < itemCount; i++) {
-            var itemIdInNetSuite = salesOrderRecord.getSublistValue({ sublistId: 'item', fieldId: 'item', line: i });
-            var quantityInNetSuite = salesOrderRecord.getSublistValue({ sublistId: 'item', fieldId: 'quantity', line: i });
+        try{
+        	var itemCount = salesOrderRecord.getLineCount('item');
+            
+            for (var i = 0; i < itemCount; i++) {
+                var itemIdInNetSuite = salesOrderRecord.getSublistValue({ sublistId: 'item', fieldId: 'item', line: i });
+                var quantityInNetSuite = salesOrderRecord.getSublistValue({ sublistId: 'item', fieldId: 'quantity', line: i });
 
-            for (var index in items) {
-                var item = items[index];
-                var itemIdOnLineItem = getItemId(item);
-                
-                if (!item.existing && itemIdOnLineItem == itemIdInNetSuite && item.Quantity == quantityInNetSuite) {
-                	item.existing = true;
+                for (var index in items) {
+                    var item = items[index];
+                    var itemIdOnLineItem = getItemId(item);
+                    
+                    if (!item.existing && itemIdOnLineItem == itemIdInNetSuite && item.Quantity == quantityInNetSuite) {
+                    	item.existing = true;
+                    }
                 }
             }
-        }
 
-        return items;
+            return items;
+            
+        } catch(err){
+        	log.error("Error in checkItemsOnRelatedEstimate ", err);
+        	throw err;
+        }
     }
 
     function setSalesOrderValues(salesOrderRecord, requestBody, items){
@@ -353,6 +376,13 @@ function(email, record, search, accounting) {
 
 		} catch(err) {
 			log.error("Error in setBillingAddress", err);
+			var data = {
+				title: "Error in WebsiteOrderImporterRESTlet setBillingAddress",
+				message: err.message,
+				color: "yellow"
+			}
+        	
+        	teamsLog.log(data, teamsUrl);
 		}
 	}
 
@@ -396,6 +426,13 @@ function(email, record, search, accounting) {
 
 		} catch(err){
 			log.error("Error in setShippingAddress ", err);
+			var data = {
+				title: "Error in WebsiteOrderImporterRESTlet setShippingAddress",
+				message: err.message,
+				color: "yellow"
+			}
+        	
+        	teamsLog.log(data, teamsUrl);
 		}
 	}
 	
@@ -495,17 +532,29 @@ function(email, record, search, accounting) {
 	}
     
     function formatDate(dateString){
-    	// NetSuite needs a Z at the end of the date string or it new Date function will not work
-    	var lastCharacter = dateString.slice(-1);
-    	
-    	// If the last character is not a Z, add it to the end
-    	if(lastCharacter != "Z"){
-    		dateString = dateString.concat("Z");
+    	try{
+    		// NetSuite needs a Z at the end of the date string or it new Date function will not work
+    		var lastCharacter = dateString.slice(-1);
+        	
+        	// If the last character is not a Z, add it to the end
+        	if(lastCharacter != "Z"){
+        		dateString = dateString.concat("Z");
+        	}
+        	
+        	var date = new Date(dateString);
+
+        	return date;
+    	} catch(err){
+    		log.error("Error in formatDate", err);
+			var data = {
+				title: "Error in WebsiteOrderImporterRESTlet setBillingAddress",
+				message: err.message,
+				color: "yellow"
+			}
+        	
+        	teamsLog.log(data, teamsUrl);
     	}
     	
-    	var date = new Date(dateString);
-
-    	return date;
 	}
     
 });
