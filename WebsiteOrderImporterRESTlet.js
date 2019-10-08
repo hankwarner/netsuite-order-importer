@@ -17,6 +17,15 @@ function(record, search, teamsLog) {
 
             } else if(!requestBody.hasOwnProperty("Items") || requestBody.Items == null || requestBody.Items == []){
                 throw new Error("Items array is required");
+
+            } else if(!requestBody.hasOwnProperty("SiteOrderNumber") || requestBody.SiteOrderNumber == null || requestBody.SiteOrderNumber == ""){
+                throw new Error("SiteOrderNumber is required");
+            }
+
+            // Check if there is an existing Sales Order with the same Site Order Number ('PO #' field on the Sales Order)
+            var isDuplicate = findDuplicateOrdersBySiteOrderNumber(requestBody.SiteOrderNumber);
+            if(isDuplicate == true){
+                return "Duplicate order";
             }
 
             var customerId = requestBody.CustomerId;
@@ -88,6 +97,49 @@ function(record, search, teamsLog) {
     return {
         post: doPost
     };
+
+    function findDuplicateOrdersBySiteOrderNumber(orderNumber){
+        try {
+            var salesOrderSearch = search.create({
+                type: "salesorder", 
+                filters: [
+                   ["type","anyof","SalesOrd"], 
+                   "AND", 
+                   ["mainline","is","T"]
+                ],
+                columns: [
+                   search.createColumn({name: "internalid"})
+                ]
+            });
+    
+            salesOrderSearch.filters.push(search.createFilter({
+                name: 'formulanumeric',
+                operator: 'greaterthanorequalto',
+                values: '1',
+                formula: "case when {otherrefnum} = " +"'"+ orderNumber +"'"+ " then 1 else 0 end"
+            }));
+             
+            var salesOrderSearchResult = salesOrderSearch.run().getRange(0, 1);
+    
+            if(salesOrderSearchResult.length >= 1){
+                var isDuplicate = true;
+            } else {
+                var isDuplicate = false;
+            }
+    
+            return isDuplicate;
+
+        } catch (err) {
+            log.error("Error in findDuplicateOrdersBySiteOrderNumber", err);
+            var data = {
+				from: "Error in WebsiteOrderImporterRESTlet findDuplicateOrdersBySiteOrderNumber",
+				message: err.message,
+				color: "yellow"
+			}
+        	
+            teamsLog.log(data, teamsUrl);
+        }
+    }
 
     function buildItemObject(items){
         try{
