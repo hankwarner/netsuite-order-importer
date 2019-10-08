@@ -105,19 +105,14 @@ function(record, search, teamsLog) {
                 filters: [
                    ["type","anyof","SalesOrd"], 
                    "AND", 
-                   ["mainline","is","T"]
+                   ["mainline","is","T"],
+                   "AND", 
+                   ["otherrefnum","equalto",orderNumber]
                 ],
                 columns: [
                    search.createColumn({name: "internalid"})
                 ]
             });
-    
-            salesOrderSearch.filters.push(search.createFilter({
-                name: 'formulanumeric',
-                operator: 'greaterthanorequalto',
-                values: '1',
-                formula: "case when {otherrefnum} = " +"'"+ orderNumber +"'"+ " then 1 else 0 end"
-            }));
              
             var salesOrderSearchResult = salesOrderSearch.run().getRange(0, 1);
     
