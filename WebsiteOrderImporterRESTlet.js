@@ -177,19 +177,15 @@ function(record, search, teamsLog) {
                 // Default to Anonymous
             	setFieldValue(salesOrderRecord, "custbody40", "1");
             } else {
+            	log.debug("requestBody.CheckoutTypeId", requestBody.CheckoutTypeId);
             	setFieldValue(salesOrderRecord, "custbody40", requestBody.CheckoutTypeId);
             }
             
             if(!requestBody.hasOwnProperty("UserTypeId") || requestBody.UserTypeId == null || requestBody.UserTypeId == ""){
                 // Default to Homeowner
-            	setFieldValue(salesOrderRecord, "custbody40", "2");
+            	setFieldValue(salesOrderRecord, "custbody28", "2");
             } else {
-            	setFieldValue(salesOrderRecord, "custbody40", requestBody.UserTypeId);
-            }
-
-            if(requestBody.hasOwnProperty("DateCreated") && requestBody.DateCreated != null && requestBody.DateCreated != ""){
-            	var salesOrderDate = formatDate(requestBody.DateCreated);
-                setFieldValue(salesOrderRecord, "trandate", salesOrderDate);
+            	setFieldValue(salesOrderRecord, "custbody28", requestBody.UserTypeId);
             }
 
             // Set memo to PaymentMethodName + Note
@@ -229,7 +225,7 @@ function(record, search, teamsLog) {
                 } else {
                     shippingCarrier = "nonups";
                 }
-                log.debug("shippingCarrier", shippingCarrier);
+
                 setFieldValue(salesOrderRecord, "shipcarrier", shippingCarrier);
 
                 var shippingMethodId = mapShippingValues(shippingMethodName);
@@ -530,37 +526,11 @@ function(record, search, teamsLog) {
 			log.error("Error in setFieldValue ", err);
 			var data = {
 				from: "Error in WebsiteOrderImporterRESTlet setFieldValue",
-				message: "fieldId: " + fieldId + "value: " + value + " Error msg: " + err.message,
+				message: "fieldId: " + fieldId + " value: " + value + " Error msg: " + err.message,
 				color: "yellow"
 			}
         	
         	teamsLog.log(data, teamsUrl);
 		}
 	}
-    
-    function formatDate(dateString){
-    	try{
-    		// NetSuite needs a Z at the end of the date string or it new Date function will not work
-    		var lastCharacter = dateString.slice(-1);
-        	
-        	// If the last character is not a Z, add it to the end
-        	if(lastCharacter != "Z"){
-        		dateString = dateString.concat("Z");
-        	}
-        	var date = new Date(dateString);
-
-        	return date;
-    	} catch(err){
-    		log.error("Error in formatDate", err);
-			var data = {
-				from: "Error in WebsiteOrderImporterRESTlet setBillingAddress",
-				message: err.message,
-				color: "yellow"
-			}
-        	
-        	teamsLog.log(data, teamsUrl);
-    	}
-    	
-	}
-    
 });
