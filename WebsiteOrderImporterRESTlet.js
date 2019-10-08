@@ -25,6 +25,7 @@ function(record, search, teamsLog) {
             // Check if there is an existing Sales Order with the same Site Order Number ('PO #' field on the Sales Order)
             var isDuplicate = findDuplicateOrdersBySiteOrderNumber(requestBody.SiteOrderNumber);
             if(isDuplicate == true){
+                log.audit("Duplicate order", requestBody.SiteOrderNumber);
                 return "Duplicate order";
             }
 
