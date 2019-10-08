@@ -17,6 +17,16 @@ function(record, search, teamsLog) {
 
             } else if(!requestBody.hasOwnProperty("Items") || requestBody.Items == null || requestBody.Items == []){
                 throw new Error("Items array is required");
+
+            } else if(!requestBody.hasOwnProperty("SiteOrderNumber") || requestBody.SiteOrderNumber == null || requestBody.SiteOrderNumber == ""){
+                throw new Error("SiteOrderNumber is required");
+            }
+
+            // Check if there is an existing Sales Order with the same Site Order Number ('PO #' field on the Sales Order)
+            var isDuplicate = findDuplicateOrdersBySiteOrderNumber(requestBody.SiteOrderNumber);
+            if(isDuplicate == true){
+                log.audit("Duplicate order", requestBody.SiteOrderNumber);
+                return "Duplicate order";
             }
 
             var customerId = requestBody.CustomerId;
@@ -88,6 +98,44 @@ function(record, search, teamsLog) {
     return {
         post: doPost
     };
+
+    function findDuplicateOrdersBySiteOrderNumber(orderNumber){
+        try {
+            var salesOrderSearch = search.create({
+                type: "salesorder", 
+                filters: [
+                   ["type","anyof","SalesOrd"], 
+                   "AND", 
+                   ["mainline","is","T"],
+                   "AND", 
+                   ["otherrefnum","equalto",orderNumber]
+                ],
+                columns: [
+                   search.createColumn({name: "internalid"})
+                ]
+            });
+             
+            var salesOrderSearchResult = salesOrderSearch.run().getRange(0, 1);
+    
+            if(salesOrderSearchResult.length >= 1){
+                var isDuplicate = true;
+            } else {
+                var isDuplicate = false;
+            }
+    
+            return isDuplicate;
+
+        } catch (err) {
+            log.error("Error in findDuplicateOrdersBySiteOrderNumber", err);
+            var data = {
+				from: "Error in WebsiteOrderImporterRESTlet findDuplicateOrdersBySiteOrderNumber",
+				message: err.message,
+				color: "yellow"
+			}
+        	
+            teamsLog.log(data, teamsUrl);
+        }
+    }
 
     function buildItemObject(items){
         try{
@@ -177,19 +225,15 @@ function(record, search, teamsLog) {
                 // Default to Anonymous
             	setFieldValue(salesOrderRecord, "custbody40", "1");
             } else {
+            	log.debug("requestBody.CheckoutTypeId", requestBody.CheckoutTypeId);
             	setFieldValue(salesOrderRecord, "custbody40", requestBody.CheckoutTypeId);
             }
             
             if(!requestBody.hasOwnProperty("UserTypeId") || requestBody.UserTypeId == null || requestBody.UserTypeId == ""){
                 // Default to Homeowner
-            	setFieldValue(salesOrderRecord, "custbody40", "2");
+            	setFieldValue(salesOrderRecord, "custbody28", "2");
             } else {
-            	setFieldValue(salesOrderRecord, "custbody40", requestBody.UserTypeId);
-            }
-
-            if(requestBody.hasOwnProperty("DateCreated") && requestBody.DateCreated != null && requestBody.DateCreated != ""){
-            	var salesOrderDate = formatDate(requestBody.DateCreated);
-                setFieldValue(salesOrderRecord, "trandate", salesOrderDate);
+            	setFieldValue(salesOrderRecord, "custbody28", requestBody.UserTypeId);
             }
 
             // Set memo to PaymentMethodName + Note
@@ -229,7 +273,7 @@ function(record, search, teamsLog) {
                 } else {
                     shippingCarrier = "nonups";
                 }
-                log.debug("shippingCarrier", shippingCarrier);
+
                 setFieldValue(salesOrderRecord, "shipcarrier", shippingCarrier);
 
                 var shippingMethodId = mapShippingValues(shippingMethodName);
@@ -530,37 +574,11 @@ function(record, search, teamsLog) {
 			log.error("Error in setFieldValue ", err);
 			var data = {
 				from: "Error in WebsiteOrderImporterRESTlet setFieldValue",
-				message: "fieldId: " + fieldId + "value: " + value + " Error msg: " + err.message,
+				message: "fieldId: " + fieldId + " value: " + value + " Error msg: " + err.message,
 				color: "yellow"
 			}
         	
         	teamsLog.log(data, teamsUrl);
 		}
 	}
-    
-    function formatDate(dateString){
-    	try{
-    		// NetSuite needs a Z at the end of the date string or it new Date function will not work
-    		var lastCharacter = dateString.slice(-1);
-        	
-        	// If the last character is not a Z, add it to the end
-        	if(lastCharacter != "Z"){
-        		dateString = dateString.concat("Z");
-        	}
-        	var date = new Date(dateString);
-
-        	return date;
-    	} catch(err){
-    		log.error("Error in formatDate", err);
-			var data = {
-				from: "Error in WebsiteOrderImporterRESTlet setBillingAddress",
-				message: err.message,
-				color: "yellow"
-			}
-        	
-        	teamsLog.log(data, teamsUrl);
-    	}
-    	
-	}
-    
 });
