@@ -50,7 +50,11 @@ function(record, search, teamsLog) {
         	
         	teamsLog.log(data, teamsUrl);
 			
-			return err;
+			var response = {
+            	error: err.message
+            }
+        	
+            return response;
         }
     }
 
