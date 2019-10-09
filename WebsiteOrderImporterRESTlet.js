@@ -23,7 +23,7 @@ function(record, search, teamsLog) {
             }
 
             // Check if there is an existing Sales Order with the same Site Order Number ('PO #' field on the Sales Order)
-            var isDuplicate = findDuplicateOrdersBySiteOrderNumber(requestBody.SiteOrderNumber);
+            var isDuplicate = findDuplicateOrdersBySiteOrderNumber(requestBody.SiteOrderNumber, requestBody.Department);
             if(isDuplicate == true){
                 log.audit("Duplicate order", requestBody.SiteOrderNumber);
                 return "Duplicate order";
@@ -99,7 +99,7 @@ function(record, search, teamsLog) {
         post: doPost
     };
 
-    function findDuplicateOrdersBySiteOrderNumber(orderNumber){
+    function findDuplicateOrdersBySiteOrderNumber(orderNumber, department){
         try {
             var salesOrderSearch = search.create({
                 type: "salesorder", 
@@ -108,7 +108,9 @@ function(record, search, teamsLog) {
                    "AND", 
                    ["mainline","is","T"],
                    "AND", 
-                   ["otherrefnum","equalto",orderNumber]
+                   ["otherrefnum","equalto",orderNumber],
+                   "AND",
+                   ["department","anyof",department]
                 ],
                 columns: [
                    search.createColumn({name: "internalid"})
@@ -285,7 +287,7 @@ function(record, search, teamsLog) {
                 var customerBillingName = setBillingAddress(salesOrderRecord, requestBody);
 
                 // Check if a different Shipping Address was provided. If so, set the shipping address (else it will auto-set to the billing address)
-                if(requestBody.hasOwnProperty("ShippingLine1") && requestBody.ShippingLine1 != null && requestBody.ShippingLine1 != "" && requestBody.ShippingLine1 != requestBody.BillingLine1){
+                if(requestBody.hasOwnProperty("ShippingLine1") && requestBody.ShippingLine1 != null && requestBody.ShippingLine1 != ""){
                     setShippingAddress(salesOrderRecord, requestBody, customerBillingName);
                 }
             }
