@@ -26,7 +26,10 @@ function(record, search, teamsLog) {
             var isDuplicate = findDuplicateOrdersBySiteOrderNumber(requestBody.SiteOrderNumber, requestBody.Department);
             if(isDuplicate == true){
                 log.audit("Duplicate order", requestBody.SiteOrderNumber);
-                return "Duplicate order";
+                var response = {
+                    salesOrderRecordId: requestBody.SiteOrderNumber
+                }
+                return response;
             }
 
             var customerId = requestBody.CustomerId;
@@ -421,6 +424,10 @@ function(record, search, teamsLog) {
 			if(requestBody.hasOwnProperty("BillingZip") && requestBody.BillingZip != null && requestBody.BillingZip != ""){
 				setFieldValue(billingAddressSubRecord, "zip", requestBody.BillingZip);
 			}
+			
+			if(requestBody.hasOwnProperty("BillingCountry") && requestBody.BillingCountry != null && requestBody.BillingCountry != ""){
+				setFieldValue(billingAddressSubRecord, "country", requestBody.BillingCountry);
+			}
 	
 			return customerBillingName;
 
@@ -470,6 +477,10 @@ function(record, search, teamsLog) {
 			
 			if(requestBody.hasOwnProperty("ShippingZip") && requestBody.ShippingZip != null && requestBody.ShippingZip != ""){
 				setFieldValue(shippingAddressSubRecord, "zip", requestBody.ShippingZip);
+			}
+			
+			if(requestBody.hasOwnProperty("ShippingCountry") && requestBody.ShippingCountry != null && requestBody.ShippingCountry != ""){
+				setFieldValue(shippingAddressSubRecord, "country", requestBody.ShippingCountry);
 			}
 	
 			return;
