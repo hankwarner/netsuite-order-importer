@@ -63,38 +63,32 @@ function(record, search, teamsLog) {
     };
     
     function getCustomerByEmail(customerEmail){
-		try{
-			// Match on email
-			var customerSearchByEmail = search.create({
-				type: "customer",
-				filters:
-				[
-				   ["email","is",customerEmail]
-				],
-				columns:
-				[
-				   search.createColumn({name: "internalid"}),
-				   search.createColumn({name: "custentity7", label: "Same Day Shipping"})
-				]
-			});
-	
-			// Get the first customer that matches
-			var customerSearchByEmailResults = customerSearchByEmail.run().getRange(0, 1);
-	
-			if(!customerSearchByEmailResults || customerSearchByEmailResults.length == 0){
-				log.audit("Customer does not exist");
-				return false;
-	
-			} else {
-				var customerId = customerSearchByEmailResults[0].getValue(customerSearchByEmail.columns[0]);
-				var sameDayShipping = customerSearchByEmailResults[0].getValue(customerSearchByEmail.columns[1]);
-				
-				return [customerId, sameDayShipping];
-			}
+		// Match on email
+		var customerSearchByEmail = search.create({
+			type: "customer",
+			filters:
+			[
+				["email","is",customerEmail]
+			],
+			columns:
+			[
+				search.createColumn({name: "internalid"}),
+				search.createColumn({name: "custentity7", label: "Same Day Shipping"})
+			]
+		});
 
-		} catch(err){
-			log.error("Error in getCustomerByEmail ", err);
-			throw err;
+		// Get the first customer that matches
+		var customerSearchByEmailResults = customerSearchByEmail.run().getRange(0, 1);
+
+		if(!customerSearchByEmailResults || customerSearchByEmailResults.length == 0){
+			log.audit("Customer does not exist");
+			return false;
+
+		} else {
+			var customerId = customerSearchByEmailResults[0].getValue(customerSearchByEmail.columns[0]);
+			var sameDayShipping = customerSearchByEmailResults[0].getValue(customerSearchByEmail.columns[1]);
+			
+			return [customerId, sameDayShipping];
 		}
     }
     

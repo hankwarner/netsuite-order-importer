@@ -1,0 +1,20 @@
+{
+  "name": "orderimporters",
+  "version": "1.0.0",
+  "description": "",
+  "main": "CreateCustomerRESTlet.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/supplydev/orderimporters.git"
+  },
+  "author": "Hank Warner",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/supplydev/orderimporters#readme",
+  "dependencies": {
+    "jest": "^24.9.0",
+    "xmlhttprequest": "^1.8.0"
+  }
+}
