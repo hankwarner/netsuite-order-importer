@@ -81,8 +81,6 @@ function(record, search, teamsLog) {
             var response = {
             	salesOrderRecordId: salesOrderRecordId
             }
-            
-            return response;
 
         } catch(err){
         	log.error("Error in WebsiteOrderImporterRESTlet", err);
@@ -91,15 +89,14 @@ function(record, search, teamsLog) {
 				message: err.message,
 				color: "red"
 			}
-        	
         	teamsLog.log(data, teamsUrl);
         	
         	var response = {
             	error: err.message
             }
-        	
-            return response;
         }
+        
+        return response;
     }
 
     return {
@@ -245,16 +242,9 @@ function(record, search, teamsLog) {
             	setFieldValue(salesOrderRecord, "custbody28", requestBody.UserTypeId);
             }
 
-            // Set memo to PaymentMethodName + Note
-            var memo = "";
-            if(requestBody.hasOwnProperty("PaymentMethodName") && requestBody.PaymentMethodName != null && requestBody.PaymentMethodName != ""){
-                memo = requestBody.PaymentMethodName;
-            }
+            // Set memo
             if(requestBody.hasOwnProperty("Note") && requestBody.Note != null && requestBody.Note != ""){
-            	memo = memo.concat(" - " + requestBody.Note);
-            }
-            if(memo != ""){
-            	setFieldValue(salesOrderRecord, "memo", memo);
+                setFieldValue(salesOrderRecord, "memo", requestBody.Note);
             }
 
             if(requestBody.hasOwnProperty("Microsite") && requestBody.Microsite != null && requestBody.Microsite != ""){
@@ -276,7 +266,8 @@ function(record, search, teamsLog) {
             if(requestBody.hasOwnProperty("ShippingMethodName") && requestBody.ShippingMethodName != null && requestBody.ShippingMethodName != ""){
                 var shippingMethodName = requestBody.ShippingMethodName;
                 var shippingCarrier;
-
+                log.debug("shippingMethodName.toLowerCase()", shippingMethodName.toLowerCase());
+                log.debug("shippingMethodName.toLowerCase().indexOf(\"ups\")", shippingMethodName.toLowerCase().indexOf("ups"));
                 if(shippingMethodName.toLowerCase().indexOf("ups") != -1){
                     shippingCarrier = "ups";
                 } else {
