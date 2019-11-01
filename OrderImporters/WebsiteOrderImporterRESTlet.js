@@ -492,7 +492,7 @@ function(record, search, teamsLog) {
 		// The item's internal ID will potentially be in two places: ItemId or CustomNetSuiteID, so we check both
 		var itemId;
 		
-		if(lineItem.hasOwnProperty("ItemId") && lineItem.ItemId != null && lineItem.ItemId != ""){
+		if(lineItem.hasOwnProperty("ItemId") && lineItem.ItemId != null && lineItem.ItemId != "" && lineItem.ItemId != "0"){
         	itemId = lineItem.ItemId;
         		
         } else if(lineItem.hasOwnProperty("CustomNetSuiteID") && lineItem.CustomNetSuiteID != null && lineItem.CustomNetSuiteID != ""){

@@ -1,5 +1,5 @@
 /**
- * @NApiVersion 2.x
+ * @NApiVersion 2.1
  * @NScriptType Suitelet
  * @NModuleScope SameAccount
  */
@@ -9,10 +9,17 @@ function(record, helper) {
 
     function onRequest(context) {
     	try{
-            var salesOrderRecordId = context.request.parameters.salesOrderRecordId;
-            log.audit("salesOrderRecordId", salesOrderRecordId);
+            var functionType = context.request.parameters.functionType;
             
-            var response = getSalesOrderRecordValues(salesOrderRecordId);
+            if(functionType == "createEstimate"){
+                var response = createEstimate();
+
+            } else if(functionType == "create"){
+                var salesOrderRecordId = context.request.parameters.salesOrderRecordId;
+                log.audit("salesOrderRecordId", salesOrderRecordId);
+
+                var response = getSalesOrderRecordValues(salesOrderRecordId);
+            }
             
         } catch(err) {            
 			log.error("Error", err);
@@ -33,6 +40,53 @@ function(record, helper) {
     return {
         onRequest: onRequest
     };
+
+    function createEstimate() {
+        var estimateRecord = record.create({
+            type: record.Type.ESTIMATE,
+            isDynamic: true,
+            defaultValues: {
+                entity: 17494445
+            } 
+        });
+
+        estimateRecord.selectNewLine({
+            sublistId: "item"
+        });
+
+        estimateRecord.setCurrentSublistValue({
+            sublistId: "item",
+            fieldId: "item",
+            value: 10268
+        });
+
+        estimateRecord.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'quantity',
+            value: 2
+        });
+
+        // Set Price Level to Custom
+        estimateRecord.setCurrentSublistValue({
+            sublistId: 'item', 
+            fieldId: 'price', 
+            value: "-1"
+        });
+
+        estimateRecord.setCurrentSublistValue({
+            sublistId: 'item',
+            fieldId: 'rate',
+            value: 120.00
+        });
+
+        estimateRecord.commitLine({
+            sublistId: 'item'
+        });
+
+        const estimateRecordId = estimateRecord.save();
+
+        return estimateRecordId.toString();
+    } 
     
     function getSalesOrderRecordValues(salesOrderRecordId){
         try{
@@ -67,7 +121,10 @@ function(record, helper) {
                 
                 // Website information
                 ["custbody242", "Microsite"],
-                ["custbody267", "IPAddress"]
+                ["custbody267", "IPAddress"],
+
+                // Related estimate
+                ["createdfrom", "RelatedEstimate"]
             ];
             
             var salesOrderRecordValues = helper.getValues(salesOrderRecord, fieldIdsArray);
@@ -104,7 +161,8 @@ function(record, helper) {
                 ShippingCity: shippingAddressValues.ShippingCity,
                 ShippingState: shippingAddressValues.ShippingState,
                 ShippingZip: shippingAddressValues.ShippingZip,
-                lineItemValues: lineItemValues
+                lineItemValues: lineItemValues,
+                RelatedEstimate: salesOrderRecordValues.RelatedEstimate
             }
             
         } catch(err) {
