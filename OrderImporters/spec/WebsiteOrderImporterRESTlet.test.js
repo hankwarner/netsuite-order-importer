@@ -168,30 +168,30 @@ describe("Import Orders From Supply.com", () => {
                 BillingLastName: "Block",
                 JobName: "Gene Cousineau's Acting Studio",
                 Department: "29",
-                SameDayShipping: "3",
                 BillingLine1: "311 Amber Lane",
                 BillingLine2: "Apt B",
                 BillingCity: "Ventura",
-                BillingState: "CA",
-                BillingZip: "90754",
+                BillingState: "TX",
+                BillingZip: "75225",
                 ShippingFirstName: "Sally",
                 ShippingLastName: "Reed",
                 ShippingLine1: "141 Tupelo Dr.",
                 ShippingLine2: "Unit 605",
                 ShippingCity: "Santa Monica",
-                ShippingState: "CA",
-                ShippingZip: "91578",
+                ShippingState: "TX",
+                ShippingZip: "75225",
                 ShippingCountry: "US",
                 Note: "This is a test note",
                 SH: 10,
                 ShippingMethodName: "UPS Ground",
                 DiscountNames: "Super Savings",
-                IPAddress: "68.191.240.43",
-                SignifydID: "1154999499",
+                IPAddress: "99.203.23.226",
+                SignifydID: "1129543835",
+                AltOrderNumber: "61954029542",
                 Microsite: "27",
                 CheckoutTypeId: "4",
-                PaymentMethodId: "12",
-                SameDayShipping: "2",
+                PaymentMethodId: "1",
+                SameDayShipping: "4", // This should be different than what is on the customer record
                 Items: [
                     {
                         ItemId: "10268",
@@ -210,13 +210,17 @@ describe("Import Orders From Supply.com", () => {
                 ]
             }
             
-            // Create an estimate and store the response as the RelatedEstimate
+            // Create an Estimate and store the response as the RelatedEstimate
             websiteOrderImpoterSpecControllerUrl += "&functionType=createEstimate";
+            websiteOrderImpoterSpecControllerUrl += "&sameDayShipping="+this.orderWithRelatedEstimate.SameDayShipping;
             this.orderWithRelatedEstimate.RelatedEstimate = httpRequest.get(websiteOrderImpoterSpecControllerUrl);;
+            
             // Remove the function type from the url
             websiteOrderImpoterSpecControllerUrl = websiteOrderImpoterSpecControllerUrl.replace("&functionType=createEstimate", "");
+            // Change the Same Day Shipping value to ensure that the Restlet sets it to the value that's on the related estimate
+            this.orderWithRelatedEstimate.SameDayShipping = "1";
 
-            // Send request to the WebsiteOrderImporterRESTlet
+            // Create the Sales Order
             this.request = JSON.stringify(this.orderWithRelatedEstimate);
             
             this.restletResponse = httpRequest.post({
@@ -224,6 +228,9 @@ describe("Import Orders From Supply.com", () => {
                 body: this.orderWithRelatedEstimate,
                 headers: headers
             });
+
+            // Reset the Same Day Shipping value back to its original state for testing purposes
+            this.orderWithRelatedEstimate.SameDayShipping = "4";
 
             // Store the sales order record id
             this.salesOrderRecordId = JSON.parse(this.restletResponse.body).salesOrderRecordId;

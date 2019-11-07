@@ -12,7 +12,8 @@ function(record, helper) {
             var functionType = context.request.parameters.functionType;
             
             if(functionType == "createEstimate"){
-                var response = createEstimate();
+                var sameDayShipping = context.request.parameters.sameDayShipping;
+                var response = createEstimate(sameDayShipping);
 
             } else if(functionType == "create"){
                 var salesOrderRecordId = context.request.parameters.salesOrderRecordId;
@@ -41,13 +42,20 @@ function(record, helper) {
         onRequest: onRequest
     };
 
-    function createEstimate() {
+    function createEstimate(sameDayShipping) {
         var estimateRecord = record.create({
             type: record.Type.ESTIMATE,
             isDynamic: true,
             defaultValues: {
                 entity: 17494445
             } 
+        });
+
+        // Set Same-Day Shipping
+        log.debug("sameDayShipping", sameDayShipping);
+        estimateRecord.setValue({
+            fieldId: "custbody7",
+            value: sameDayShipping
         });
 
         estimateRecord.selectNewLine({
@@ -118,6 +126,7 @@ function(record, helper) {
                 ["custbody28", "UserTypeId"],
                 ["department", "Department"],
                 ["memo", "Note"],
+                ["custbody28", "UserTypeId"],
                 
                 // Website information
                 ["custbody242", "Microsite"],
@@ -139,6 +148,7 @@ function(record, helper) {
                 SignifydID: salesOrderRecordValues.SignifydID,
                 SiteOrderNumber: salesOrderRecordValues.SiteOrderNumber,
                 BrontoId: salesOrderRecordValues.BrontoId,
+                UserTypeId: salesOrderRecordValues.UserTypeId,
                 JobName: salesOrderRecordValues.JobName,
                 DiscountNames: salesOrderRecordValues.DiscountNames,
                 CheckoutTypeId: salesOrderRecordValues.CheckoutTypeId,

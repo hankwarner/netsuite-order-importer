@@ -7,7 +7,8 @@ define(['N/record', 'N/search', 'S/teamslog.js'],
 
 function(record, search, teamsLog) {
 	const teamsUrl = "https://outlook.office.com/webhook/ccaff0e4-631a-4421-b57a-c899e744d60f@3c2f8435-994c-4552-8fe8-2aec2d0822e4/IncomingWebhook/9627607123264385b536d2c1ff1dbd4b/f69cfaae-e768-453b-8323-13e5bcff563f";
-	
+    var hasRelatedEstimate;
+    
     function doPost(requestBody) {
         try{
             log.audit("requestBody", requestBody);
@@ -43,7 +44,7 @@ function(record, search, teamsLog) {
             */
             if(requestBody.hasOwnProperty("RelatedEstimate") && requestBody.RelatedEstimate != null && requestBody.RelatedEstimate != ""){
             	log.audit("has related estimate", requestBody.RelatedEstimate);
-            	
+            	hasRelatedEstimate = true;
             	// Split RelatedEstimate value to get the estimate internal ID
             	if(requestBody.RelatedEstimate.indexOf("|") != -1){
             		var relatedEstimateId = requestBody.RelatedEstimate.split("|")[1];
@@ -66,7 +67,8 @@ function(record, search, teamsLog) {
 
             } else {
             	log.audit("does not have related estimate");
-            	var salesOrderRecord = record.create({
+                hasRelatedEstimate = false;
+                var salesOrderRecord = record.create({
                     type: record.Type.SALES_ORDER,
                     isDynamic: true,  
                     defaultValues: {
@@ -231,7 +233,6 @@ function(record, search, teamsLog) {
                 // Default to Anonymous
             	setFieldValue(salesOrderRecord, "custbody40", "1");
             } else {
-            	log.debug("requestBody.CheckoutTypeId", requestBody.CheckoutTypeId);
             	setFieldValue(salesOrderRecord, "custbody40", requestBody.CheckoutTypeId);
             }
             
@@ -256,18 +257,21 @@ function(record, search, teamsLog) {
             }
 
             // Shipping values
-            if(!requestBody.hasOwnProperty("SameDayShipping") || requestBody.SameDayShipping == null || requestBody.SameDayShipping == ""){
-            	// Default to No-Fully Committed Only if not provided
-            	setFieldValue(salesOrderRecord, "custbody7", "3");
-            } else {
-            	setFieldValue(salesOrderRecord, "custbody7", requestBody.SameDayShipping);
+            
+            // If a related estimate exists, do not set Same Day Shipping (ie, carry value over from the estimate)
+            if(!hasRelatedEstimate){
+                if(!requestBody.hasOwnProperty("SameDayShipping") || requestBody.SameDayShipping == null || requestBody.SameDayShipping == ""){
+                    // Default to No-Fully Committed Only if not provided
+                    setFieldValue(salesOrderRecord, "custbody7", "3");
+                } else {
+                    setFieldValue(salesOrderRecord, "custbody7", requestBody.SameDayShipping);
+                }
             }
 
             if(requestBody.hasOwnProperty("ShippingMethodName") && requestBody.ShippingMethodName != null && requestBody.ShippingMethodName != ""){
                 var shippingMethodName = requestBody.ShippingMethodName;
                 var shippingCarrier;
-                log.debug("shippingMethodName.toLowerCase()", shippingMethodName.toLowerCase());
-                log.debug("shippingMethodName.toLowerCase().indexOf(\"ups\")", shippingMethodName.toLowerCase().indexOf("ups"));
+
                 if(shippingMethodName.toLowerCase().indexOf("ups") != -1){
                     shippingCarrier = "ups";
                 } else {
@@ -371,7 +375,6 @@ function(record, search, teamsLog) {
             }
             
             var salesOrderRecordId = salesOrderRecord.save();
-            log.debug("salesOrderRecordId", salesOrderRecordId);
             
             return salesOrderRecordId;
 
