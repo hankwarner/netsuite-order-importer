@@ -119,14 +119,14 @@ function(record, helper) {
                 ["otherrefnum", "SiteOrderNumber"],
                 ["custbody7", "SameDayShipping"],
                 ["custbody61", "JobName"],
+                ["custbody270", "AltOrderNumber"],
 
                 // General info
                 ["custbody_ss_brontoid", "BrontoId"],
-                ["custbody1", "Email"],
+                ["entity", "CustomerId"],
                 ["custbody28", "UserTypeId"],
                 ["department", "Department"],
                 ["memo", "Note"],
-                ["custbody28", "UserTypeId"],
                 
                 // Website information
                 ["custbody242", "Microsite"],
@@ -142,6 +142,7 @@ function(record, helper) {
             var lineItemValues = getlineItemValues(salesOrderRecord);
             
             var response = {
+                CustomerId: salesOrderRecordValues.CustomerId,
                 Taxable: salesOrderRecordValues.Taxable,
                 PaymentMethodId: salesOrderRecordValues.PaymentMethodId,
                 SH: salesOrderRecordValues.SH,
@@ -155,9 +156,7 @@ function(record, helper) {
                 Note: salesOrderRecordValues.Note,
                 Microsite: salesOrderRecordValues.Microsite,
                 IPAddress: salesOrderRecordValues.IPAddress,
-                Email: salesOrderRecordValues.Email,
                 Department: salesOrderRecordValues.Department,
-                UserTypeId: salesOrderRecordValues.UserTypeId,
                 SameDayShipping: salesOrderRecordValues.SameDayShipping,
                 BillingAddressee: billingAddressValues.BillingAddressee,
                 BillingLine1: billingAddressValues.BillingLine1,
@@ -171,8 +170,9 @@ function(record, helper) {
                 ShippingCity: shippingAddressValues.ShippingCity,
                 ShippingState: shippingAddressValues.ShippingState,
                 ShippingZip: shippingAddressValues.ShippingZip,
-                lineItemValues: lineItemValues,
-                RelatedEstimate: salesOrderRecordValues.RelatedEstimate
+                Items: lineItemValues,
+                RelatedEstimate: salesOrderRecordValues.RelatedEstimate,
+                AltOrderNumber: salesOrderRecordValues.AltOrderNumber
             }
             
         } catch(err) {
@@ -223,7 +223,7 @@ function(record, helper) {
     }
 
     function getlineItemValues(salesOrderRecord){
-        var lineItemValues = {};
+        var lineItemValues = [];
         var itemCount = salesOrderRecord.getLineCount('item');
         
         for(var i=0; i < itemCount; i++){
@@ -234,18 +234,22 @@ function(record, helper) {
             var discountName = salesOrderRecord.getSublistValue({ sublistId: 'item', fieldId: 'custcol34', line: i });
             var itemNotes = salesOrderRecord.getSublistValue({ sublistId: 'item', fieldId: 'custcol19', line: i });
             var orderLevelDiscount = salesOrderRecord.getSublistValue({ sublistId: 'item', fieldId: 'custcol35', line: i });
+            var personalItem = salesOrderRecord.getSublistValue({ sublistId: 'item', fieldId: 'custcol_ss_nestpropersonalitem', line: i });
 
-            lineItemValues[itemId] = {
+            var item = {
+                itemId: itemId,
                 quantity: quantity,
                 amount: amount,
                 rate: rate,
                 discountName: discountName,
                 itemNotes: itemNotes,
-                orderLevelDiscount: orderLevelDiscount
+                orderLevelDiscount: orderLevelDiscount,
+                personalItem: personalItem
             }
+
+            lineItemValues.push(item);
         }
-        log.debug("lineItemValues", lineItemValues);
+
         return lineItemValues;
     }
-    
 });

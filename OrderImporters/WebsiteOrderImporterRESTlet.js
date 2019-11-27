@@ -24,11 +24,15 @@ function(record, search, teamsLog) {
             }
 
             // Check if there is an existing Sales Order with the same Site Order Number ('PO #' field on the Sales Order)
-            var isDuplicate = findDuplicateOrdersBySiteOrderNumber(requestBody.SiteOrderNumber, requestBody.Department);
+            var findDuplicateOrdersBySiteOrderNumberResults = findDuplicateOrdersBySiteOrderNumber(requestBody.SiteOrderNumber, requestBody.Department);
+            var isDuplicate = findDuplicateOrdersBySiteOrderNumberResults[0];
+
             if(isDuplicate == true){
                 log.audit("Duplicate order", requestBody.SiteOrderNumber);
+                var salesOrderRecordId = findDuplicateOrdersBySiteOrderNumberResults[1];
+
                 var response = {
-                    salesOrderRecordId: requestBody.SiteOrderNumber
+                    salesOrderRecordId: salesOrderRecordId
                 }
                 return response;
             }
@@ -127,11 +131,12 @@ function(record, search, teamsLog) {
     
             if(salesOrderSearchResult.length >= 1){
                 var isDuplicate = true;
+                var salesOrderRecordId = salesOrderSearchResult[0].getValue(salesOrderSearch.columns[0]);
             } else {
                 var isDuplicate = false;
             }
     
-            return isDuplicate;
+            return [isDuplicate, salesOrderRecordId];
 
         } catch (err) {
             log.error("Error in findDuplicateOrdersBySiteOrderNumber", err);
@@ -187,10 +192,10 @@ function(record, search, teamsLog) {
     function setSalesOrderValues(salesOrderRecord, requestBody, items){
         try {
             // Default taxable to true
-        	setFieldValue(salesOrderRecord, "istaxable", true);
-        	
+            setFieldValue(salesOrderRecord, "istaxable", true);
+
         	if(!requestBody.hasOwnProperty("PaymentMethodId") || requestBody.PaymentMethodId == null || requestBody.PaymentMethodId == ""){
-            	// Set to Cash if payment method is not provided
+            	// Set to credit card if payment method is not provided
             	setFieldValue(salesOrderRecord, "paymentmethod", "1");
             } else {
                 setFieldValue(salesOrderRecord, "paymentmethod", requestBody.PaymentMethodId);
@@ -270,16 +275,6 @@ function(record, search, teamsLog) {
 
             if(requestBody.hasOwnProperty("ShippingMethodName") && requestBody.ShippingMethodName != null && requestBody.ShippingMethodName != ""){
                 var shippingMethodName = requestBody.ShippingMethodName;
-                var shippingCarrier;
-
-                if(shippingMethodName.toLowerCase().indexOf("ups") != -1){
-                    shippingCarrier = "ups";
-                } else {
-                    shippingCarrier = "nonups";
-                }
-
-                setFieldValue(salesOrderRecord, "shipcarrier", shippingCarrier);
-
                 var shippingMethodId = mapShippingValues(shippingMethodName);
                 setFieldValue(salesOrderRecord, "shipmethod", shippingMethodId);
             }
@@ -365,6 +360,15 @@ function(record, search, teamsLog) {
                         });
                     }
 
+                    // For Nest Pro orders only:
+                    if(lineItem.hasOwnProperty("PersonalItem") && lineItem.PersonalItem != null && lineItem.PersonalItem != ""){
+                        salesOrderRecord.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'custcol_ss_nestpropersonalitem',
+                            value: lineItem.PersonalItem
+                        });
+                    }
+
                 } catch(err){
                     log.error("Error in setSalesOrderValues when setting item notes and discounts", err);
                 }
@@ -412,7 +416,7 @@ function(record, search, teamsLog) {
 			}
 			
 			if(requestBody.hasOwnProperty("BillingState") && requestBody.BillingState != null && requestBody.BillingState != ""){
-				setFieldValue(billingAddressSubRecord, "state", requestBody.BillingState);
+                setFieldValue(billingAddressSubRecord, "state", requestBody.BillingState);
 			}
 			
 			if(requestBody.hasOwnProperty("BillingZip") && requestBody.BillingZip != null && requestBody.BillingZip != ""){
@@ -457,7 +461,7 @@ function(record, search, teamsLog) {
 				setFieldValue(shippingAddressSubRecord, "addressee", customerShippingName);
 			}
 	
-			if(requestBody.hasOwnProperty("ShippingLine2") && requestBody.ShippingLine2 != null && requestBody.ShippingLine2 != ""){
+			if(requestBody.hasOwnProperty("ShippingLine2") && requestBody.ShippingLine2 != null){
 				setFieldValue(shippingAddressSubRecord, "addr2", requestBody.ShippingLine2);
 			}
 			
@@ -466,7 +470,7 @@ function(record, search, teamsLog) {
 			}
 			
 			if(requestBody.hasOwnProperty("ShippingState") && requestBody.ShippingState != null && requestBody.ShippingState != ""){
-				setFieldValue(shippingAddressSubRecord, "state", requestBody.ShippingState);
+                setFieldValue(shippingAddressSubRecord, "state", requestBody.ShippingState);
 			}
 			
 			if(requestBody.hasOwnProperty("ShippingZip") && requestBody.ShippingZip != null && requestBody.ShippingZip != ""){
@@ -475,6 +479,10 @@ function(record, search, teamsLog) {
 			
 			if(requestBody.hasOwnProperty("ShippingCountry") && requestBody.ShippingCountry != null && requestBody.ShippingCountry != ""){
 				setFieldValue(shippingAddressSubRecord, "country", requestBody.ShippingCountry);
+            }
+            
+            if(requestBody.hasOwnProperty("ShippingPhone") && requestBody.ShippingPhone != null && requestBody.ShippingPhone != ""){
+				setFieldValue(shippingAddressSubRecord, "addrphone", requestBody.ShippingPhone);
 			}
 	
 			return;
@@ -524,6 +532,9 @@ function(record, search, teamsLog) {
                 break;
             case "customer pickup":
                 shippingMethodId = "149327";
+                break;
+            case "shippers choice":
+                shippingMethodId = "315203";
                 break;
             case "ups 2nd day air":
                 shippingMethodId = "4230";

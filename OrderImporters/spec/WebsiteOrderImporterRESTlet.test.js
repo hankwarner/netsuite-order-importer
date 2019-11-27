@@ -102,7 +102,6 @@ describe("Import Orders From Supply.com", () => {
 
         test("should set the general infomation fields", () => {
             expect(this.controllerResponse.BrontoId).toBe(this.orderWithoutRelatedEstimate.SiteOrderNumber);
-            expect(this.controllerResponse.Email).toBe(this.orderWithoutRelatedEstimate.Email);
             expect(this.controllerResponse.Department).toBe(this.orderWithoutRelatedEstimate.Department);
             expect(this.controllerResponse.Note).toBe(this.orderWithoutRelatedEstimate.Note);
             expect(this.controllerResponse.BrontoId).toBe(this.orderWithoutRelatedEstimate.SiteOrderNumber);
@@ -140,15 +139,16 @@ describe("Import Orders From Supply.com", () => {
         test("should set the item lines", () => {
             this.orderWithoutRelatedEstimate.Items.forEach(element => {
                 var lineItemId = element.ItemId;
-                var controllerResponseItem = this.controllerResponse.lineItemValues[lineItemId];
-                var totalAmount = element.Quantity * element.Rate;
                 
-                expect(controllerResponseItem.quantity).toBe(element.Quantity);
-                expect(controllerResponseItem.amount).toBe(totalAmount);
-                expect(controllerResponseItem.rate).toBe(element.Rate);
-                expect(controllerResponseItem.discountName).toBe(element.DiscountNames);
-                expect(controllerResponseItem.itemNotes).toBe(element.ItemNotes);
-                expect(controllerResponseItem.orderLevelDiscount).toBe(element.OrderLevelDiscountAmount);
+                this.controllerResponse.Items.forEach(netsuiteResponse => {
+                    if(netsuiteResponse.itemId == lineItemId){
+                        var totalAmount = element.Quantity * element.Rate;
+
+                        expect(netsuiteResponse.quantity).toBe(element.Quantity);
+                        expect(netsuiteResponse.amount).toBe(totalAmount);
+                        expect(netsuiteResponse.rate).toBe(element.Rate);
+                    }
+                });
             });
         });
 
@@ -258,7 +258,6 @@ describe("Import Orders From Supply.com", () => {
 
         test("should set the general infomation fields", () => {
             expect(this.controllerResponse.BrontoId).toBe(this.orderWithRelatedEstimate.SiteOrderNumber);
-            expect(this.controllerResponse.Email).toBe(this.orderWithRelatedEstimate.Email);
             expect(this.controllerResponse.Department).toBe(this.orderWithRelatedEstimate.Department);
             expect(this.controllerResponse.Note).toBe(this.orderWithRelatedEstimate.Note);
             expect(this.controllerResponse.BrontoId).toBe(this.orderWithRelatedEstimate.SiteOrderNumber);
@@ -296,12 +295,16 @@ describe("Import Orders From Supply.com", () => {
         test("should set the item lines", () => {
             this.orderWithRelatedEstimate.Items.forEach(element => {
                 var lineItemId = element.ItemId;
-                var controllerResponseItem = this.controllerResponse.lineItemValues[lineItemId];
-                var totalAmount = element.Quantity * element.Rate;
                 
-                expect(controllerResponseItem.quantity).toBe(element.Quantity);
-                expect(controllerResponseItem.amount).toBe(totalAmount);
-                expect(controllerResponseItem.rate).toBe(element.Rate);
+                this.controllerResponse.Items.forEach(netsuiteResponse => {
+                    if(netsuiteResponse.itemId == lineItemId){
+                        var totalAmount = element.Quantity * element.Rate;
+
+                        expect(netsuiteResponse.quantity).toBe(element.Quantity);
+                        expect(netsuiteResponse.amount).toBe(totalAmount);
+                        expect(netsuiteResponse.rate).toBe(element.Rate);
+                    }
+                });
             });
         });
 
