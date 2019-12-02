@@ -1,24 +1,25 @@
 # Description
-API endpoint for importing orders from microsites, such as Pro.Supply.com, Google Nest Pro, etc., into the NetSuite for fulfillment and reporting.
+API endpoint for importing orders from microsites, such as Pro.Supply.com, Google Nest Pro, etc., into NetSuite for fulfillment and reporting.
 
 
 
-## Headers
+# Headers
 **required** `Content-Type: application/json`
 
 **required** `Authorization: NLAuth nlauth_account={NS_ACCT_ID},nlauth_email={NS_EMAIL},nlauth_signature={NS_PW},nlauth_role={NS_ROLE}`
 
 
 
-## Body
+# Body
 Accepts a JSON object with the following key-value pairs:
 
 
-### Required
+## Required
  **int** `CustomerId`: Internal NetSuite ID of the customer. 
 
  **string** `SiteOrderNumber`: Purchase Order number from the respective microservice. Populates _otherrefnum_. 
 
+### Items:
  **Array<object>** `Items`: an array of objects containing the items on the order. Each object must include the following:
       
    **string** `ItemId`: the NetSuite internal ID of the item
@@ -29,29 +30,44 @@ Accepts a JSON object with the following key-value pairs:
 
    **int** `Amount`: total item cost (Quantity * Rate)
 
-#### Billing address:
+### Billing address:
  **string** `BillingFirstName`
+
  **string** `BillingLastName`
+
  **string** `BillingLine1`
+
  **string** `BillingLine2`
+
  **string** `BillingCity`
+
  **string** `BillingState`
+
  **string** `BillingZip`
+
  **string** `BillingCountry`
 
-#### Shipping address:
+### Shipping address:
  **string** `ShippingFirstName`
+
  **string** `ShippingLastName`
+
  **string** `ShippingLine1`
+
  **string** `ShippingLine2`
+
  **string** `ShippingCity`
+
  **string** `ShippingState`
+
  **string** `ShippingZip`
+
  **string** `ShippingCountry`
+
  **string** `ShippingPhone`
 
 
-### Optional
+## Optional
  **string** `AltOrderNumber`: The payment processing ID. Populates _custbody270_ (Processing Gateway ID).
 
  **string** `JobName`: The customer's job name they are purchasing for. Populates _custbody61_.
@@ -72,17 +88,17 @@ Accepts a JSON object with the following key-value pairs:
 
 **string** `CheckoutTypeId`: The ID of the checkout type used during the transaction (Amazon Marketplace, PayPal, etc.). Populates _custbody40_ (Order Type).
 
- **string** `Email`: The email used during purchase.
+ **string** `Email`: The billing email used during purchase.
 
- **string** `PhoneNumber`: The phone number used during purchase.
+ **string** `PhoneNumber`: The billing phone number used during purchase.
 
-**string** `ShippingMethodName`: The specific type of shipping. Populates 'shipmethod' in NetSuite.
+**string** `ShippingMethodName`: The specific type of shipping. Populates _shipmethod_ in NetSuite.
    _Options_: "UPS Ground", "UPS 2nd Day Air", "UPS 2nd Day Air A.M.", "UPS 3 Day Select", "UPS Freight", "UPS Freight LTL Guaranteed", "UPS Next Day Air", "UPS Next Day Air Early A.M."
 
 
-**string** `Note`: Order comments. Populates 'memo'  in NetSuite.
+**string** `Note`: Order comments. Populates _memo_.
 
-**int** `SH`: Shipping and handling cost. Defaults to 0.00.
+**int** `SH`: Shipping and handling cost. Defaults to 0.00. Populates _shippingcost_.
 
 **int** `PaymentMethodId`: The NetSuite internal ID of the payment method used during checkout (Credit card, PayPal, Amazon Marketplace, etc.). Populates _paymentmethod_. Defaults to _Credit Card_.
 
@@ -90,7 +106,7 @@ Accepts a JSON object with the following key-value pairs:
 
 
 
-## Example Request
+# Example Request
 ```
 {
    "CustomerId": 17494445,
@@ -149,12 +165,12 @@ Accepts a JSON object with the following key-value pairs:
 
 
 
-## Returns
+# Returns
 `application/json`
 
 
 
-### Example Success Response
+## Example Success Response
 ```
 {
    "salesOrderRecordId": "7154894614"
@@ -162,7 +178,7 @@ Accepts a JSON object with the following key-value pairs:
 ```
 
 
-### Example Error Response
+## Example Error Response
 ```
 {
    "error": "Invalid customer id."
