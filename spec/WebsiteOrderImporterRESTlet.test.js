@@ -11,7 +11,6 @@ const headers = {
 describe("Import Orders From Supply.com", () => {
 
     describe("Create a new Sales Order without a Related Estimate", () => {
-
         beforeAll(() => {
             this.orderWithoutRelatedEstimate = {
                 CustomerId: "17494445",
@@ -27,15 +26,16 @@ describe("Import Orders From Supply.com", () => {
                 BillingCity: "Ventura",
                 BillingState: "CA",
                 BillingZip: "90754",
-                ShippingFirstName: "Sally",
-                ShippingLastName: "Reed",
+                ShippingFirstName: "Gene",
+                ShippingLastName: "Parmesan",
                 ShippingLine1: "141 Tupelo Dr.",
                 ShippingLine2: "Unit 605",
                 ShippingCity: "Santa Monica",
                 ShippingState: "CA",
                 ShippingZip: "91578",
                 ShippingCountry: "US",
-                Note: "This is a test note",
+                ShippingPhone: "2128744587",
+                Note: "This is a test order",
                 SH: 10,
                 ShippingMethodName: "UPS Ground",
                 DiscountNames: "Super Savings",
@@ -54,18 +54,14 @@ describe("Import Orders From Supply.com", () => {
                         Amount: 903.26,
                         DiscountNames: "Super Duper Saver",
                         OrderLevelDiscountAmount: 15,
-                        ItemNotes: "this item rules",
-                        ItemName: "K-6489-0"
                     },
                     {
                         ItemId: "1808976",
                         Quantity: 3,
                         Rate: 1506.45,
-                        Amount: 1506.45,
+                        Amount: 4519.35,
                         DiscountNames: "Triple Saver",
                         OrderLevelDiscountAmount: 15,
-                        ItemNotes: "this item rules",
-                        ItemName: "RU199iN"
                     }
                 ]
             }
@@ -104,13 +100,13 @@ describe("Import Orders From Supply.com", () => {
             expect(this.controllerResponse.BrontoId).toBe(this.orderWithoutRelatedEstimate.SiteOrderNumber);
             expect(this.controllerResponse.Department).toBe(this.orderWithoutRelatedEstimate.Department);
             expect(this.controllerResponse.Note).toBe(this.orderWithoutRelatedEstimate.Note);
-            expect(this.controllerResponse.BrontoId).toBe(this.orderWithoutRelatedEstimate.SiteOrderNumber);
         });
 
         test("should set the order infomation fields", () => {
             expect(this.controllerResponse.SiteOrderNumber).toBe(this.orderWithoutRelatedEstimate.SiteOrderNumber);
             expect(this.controllerResponse.SameDayShipping).toBe(this.orderWithoutRelatedEstimate.SameDayShipping);
             expect(this.controllerResponse.JobName).toBe(this.orderWithoutRelatedEstimate.JobName);
+            expect(this.controllerResponse.ShippingMethodName).toBe("3");
         });
 
         test("should set the website infomation fields", () => {
@@ -134,25 +130,28 @@ describe("Import Orders From Supply.com", () => {
             expect(this.controllerResponse.ShippingCity).toBe(this.orderWithoutRelatedEstimate.ShippingCity);
             expect(this.controllerResponse.ShippingState).toBe(this.orderWithoutRelatedEstimate.ShippingState);
             expect(this.controllerResponse.ShippingZip).toBe(this.orderWithoutRelatedEstimate.ShippingZip);
+            expect(this.controllerResponse.ShippingPhone).toBe(this.orderWithoutRelatedEstimate.ShippingPhone);
         });
 
         test("should set the item lines", () => {
+            expect(this.controllerResponse.Items.length).toBe(this.orderWithoutRelatedEstimate.Items.length);
+
             this.orderWithoutRelatedEstimate.Items.forEach(element => {
                 var lineItemId = element.ItemId;
                 
                 this.controllerResponse.Items.forEach(netsuiteResponse => {
                     if(netsuiteResponse.itemId == lineItemId){
-                        var totalAmount = element.Quantity * element.Rate;
-
                         expect(netsuiteResponse.quantity).toBe(element.Quantity);
-                        expect(netsuiteResponse.amount).toBe(totalAmount);
+                        expect(netsuiteResponse.amount).toBe(element.Amount);
                         expect(netsuiteResponse.rate).toBe(element.Rate);
+                        expect(netsuiteResponse.discountName).toBe(element.DiscountNames);
+                        expect(netsuiteResponse.orderLevelDiscount).toBe(element.OrderLevelDiscountAmount);
                     }
                 });
             });
         });
 
-        //Reset the Suitelet url to its original form
+        // Reset the Suitelet url to its original form
         afterAll(() => {
             websiteOrderImpoterSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1779&deploy=1&compid=634494_SB1&h=e2c8c227c3eb3b838b7a";
         });
@@ -170,20 +169,20 @@ describe("Import Orders From Supply.com", () => {
                 Department: "29",
                 BillingLine1: "311 Amber Lane",
                 BillingLine2: "Apt B",
-                BillingCity: "Ventura",
+                BillingCity: "Killen",
                 BillingState: "TX",
                 BillingZip: "75225",
-                ShippingFirstName: "Sally",
-                ShippingLastName: "Reed",
+                ShippingFirstName: "Gene",
+                ShippingLastName: "Parmesan",
                 ShippingLine1: "141 Tupelo Dr.",
-                ShippingLine2: "Unit 605",
-                ShippingCity: "Santa Monica",
+                ShippingLine2: "",
+                ShippingCity: "Austin",
                 ShippingState: "TX",
                 ShippingZip: "75225",
                 ShippingCountry: "US",
                 Note: "This is a test note",
                 SH: 10,
-                ShippingMethodName: "UPS Ground",
+                ShippingMethodName: "UPS Next Day Air Early A.M.",
                 DiscountNames: "Super Savings",
                 IPAddress: "99.203.23.226",
                 SignifydID: "1129543835",
@@ -198,14 +197,14 @@ describe("Import Orders From Supply.com", () => {
                         Quantity: 2,
                         Rate: 120.00,
                         Amount: 240.00,
-                        ItemName: "69000"
+                        PersonalItem: false
                     },
                     {
                         ItemId: "1808976",
                         Quantity: 3,
                         Rate: 1506.45,
-                        Amount: 1506.45,
-                        ItemName: "RU199iN"
+                        Amount: 4519.35,
+                        PersonalItem: true
                     }
                 ]
             }
@@ -267,6 +266,7 @@ describe("Import Orders From Supply.com", () => {
             expect(this.controllerResponse.SiteOrderNumber).toBe(this.orderWithRelatedEstimate.SiteOrderNumber);
             expect(this.controllerResponse.SameDayShipping).toBe(this.orderWithRelatedEstimate.SameDayShipping);
             expect(this.controllerResponse.JobName).toBe(this.orderWithRelatedEstimate.JobName);
+            expect(this.controllerResponse.ShippingMethodName).toBe("4234");
         });
 
         test("should set the website infomation fields", () => {
@@ -293,29 +293,51 @@ describe("Import Orders From Supply.com", () => {
         });
 
         test("should set the item lines", () => {
+            expect(this.controllerResponse.Items.length).toBe(this.orderWithRelatedEstimate.Items.length);
+
             this.orderWithRelatedEstimate.Items.forEach(element => {
                 var lineItemId = element.ItemId;
                 
                 this.controllerResponse.Items.forEach(netsuiteResponse => {
                     if(netsuiteResponse.itemId == lineItemId){
-                        var totalAmount = element.Quantity * element.Rate;
-
                         expect(netsuiteResponse.quantity).toBe(element.Quantity);
-                        expect(netsuiteResponse.amount).toBe(totalAmount);
+                        expect(netsuiteResponse.amount).toBe(element.Amount);
                         expect(netsuiteResponse.rate).toBe(element.Rate);
+                        expect(netsuiteResponse.personalItem).toBe(element.PersonalItem);
                     }
                 });
             });
         });
 
-        //Reset the Suitelet url to its original form
+        // Reset the Suitelet url to its original form
         afterAll(() => {
             websiteOrderImpoterSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1779&deploy=1&compid=634494_SB1&h=e2c8c227c3eb3b838b7a";
         });
     });
 
+    describe("Throw exception if required field is missing", () => {
+        beforeAll(() => {
+            this.orderWithMissingFields = {
+                CustomerId: ""
+            }
 
+            this.restletResponse = httpRequest.post({
+                url: websiteOrderImporterRESTletUrl,
+                body: this.orderWithMissingFields,
+                headers: headers
+            });
 
-    // Should not create duplicate order
+            this.netsuiteResponse = JSON.parse(this.restletResponse.body);
+        });
+
+        test("should throw exception", () => {
+            expect(this.netsuiteResponse.error).toBe("CustomerId is required");
+        });
+
+        // Reset the Suitelet url to its original form
+        afterAll(() => {
+            websiteOrderImpoterSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1779&deploy=1&compid=634494_SB1&h=e2c8c227c3eb3b838b7a";
+        });
+    });
 
 });

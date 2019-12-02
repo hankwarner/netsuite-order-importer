@@ -1,27 +1,55 @@
 # Description
-API endpoint for importing orders from microsites (Supply.com, Google Nest Pro, etc.) into NetSuite.
+API endpoint for importing orders from microsites, such as Pro.Supply.com, Google Nest Pro, etc., into the NetSuite for fulfillment and reporting.
 
 
 
 ## Headers
-`Content-Type: application/json` _required_
-`Authorization: NLAuth nlauth_account={NS_ACCT_ID},nlauth_email={NS_EMAIL},nlauth_signature={NS_PW},nlauth_role={NS_ROLE}` _required_
+**required** `Content-Type: application/json`
+
+**required** `Authorization: NLAuth nlauth_account={NS_ACCT_ID},nlauth_email={NS_EMAIL},nlauth_signature={NS_PW},nlauth_role={NS_ROLE}`
 
 
 
 ## Body
-Accepts a JSON array with the following key-value pairs:
+Accepts a JSON object with the following key-value pairs:
+
 
 ### Required
  **int** `CustomerId`: Internal NetSuite ID of the customer. 
 
  **string** `SiteOrderNumber`: Purchase Order number from the respective microservice. Populates _otherrefnum_. 
 
- **Array<objects>** `Items`: an array of objects containing the items on the order. Each object must include:
-       **string** `ItemId`: the NetSuite internal ID of the item
-       **int** `Quantity`: item quantity
-       **int** `Rate`: cost per item
-       **int** `Amount`: total item cost (Quantity * Rate)
+ **Array<object>** `Items`: an array of objects containing the items on the order. Each object must include the following:
+      
+   **string** `ItemId`: the NetSuite internal ID of the item
+
+   **int** `Quantity`: item quantity
+
+   **int** `Rate`: cost per item
+
+   **int** `Amount`: total item cost (Quantity * Rate)
+
+#### Billing address:
+ **string** `BillingFirstName`
+ **string** `BillingLastName`
+ **string** `BillingLine1`
+ **string** `BillingLine2`
+ **string** `BillingCity`
+ **string** `BillingState`
+ **string** `BillingZip`
+ **string** `BillingCountry`
+
+#### Shipping address:
+ **string** `ShippingFirstName`
+ **string** `ShippingLastName`
+ **string** `ShippingLine1`
+ **string** `ShippingLine2`
+ **string** `ShippingCity`
+ **string** `ShippingState`
+ **string** `ShippingZip`
+ **string** `ShippingCountry`
+ **string** `ShippingPhone`
+
 
 ### Optional
  **string** `AltOrderNumber`: The payment processing ID. Populates _custbody270_ (Processing Gateway ID).
@@ -32,7 +60,7 @@ Accepts a JSON array with the following key-value pairs:
 
  **string** `IPAddress`: IP Address of the purchaser. Populates _custbody267_ (IP Address).
 
- **string** `RelatedEstimate`: The NetSuite internal ID of the related estimate. **Important**: if the sale was converted from an estimate, providing this ID will ensure all item quantities and rates match the estimate.
+ **string** `RelatedEstimate`: The NetSuite internal ID of the related estimate. _Important_: if the sale was converted from an estimate, providing this ID will ensure all item quantities and rates match the estimate.
 
 **string** `SignifydID`: ID used for Signifyd fraud check. Populates _custbody277_ (Signifyd Case ID).
 
@@ -44,33 +72,9 @@ Accepts a JSON array with the following key-value pairs:
 
 **string** `CheckoutTypeId`: The ID of the checkout type used during the transaction (Amazon Marketplace, PayPal, etc.). Populates _custbody40_ (Order Type).
 
- **string** `Email`
+ **string** `Email`: The email used during purchase.
 
- **string** `PhoneNumber`
-
-#### Billing contact:
-_Will default to the customer's existing address if not provided_
- **string** `BillingFirstName`
- **string** `BillingLastName`
- **string** `BillingLine1`
- **string** `BillingLine2`
- **string** `BillingCity`
- **string** `BillingState`
- **string** `BillingZip`
- **string** `BillingCountry`
-
-
-#### Shipping address:
-_Will default to billing address if not provided_
- **string** `ShippingFirstName`
- **string** `ShippingLastName`
- **string** `ShippingLine1`
- **string** `ShippingLine2`
- **string** `ShippingCity`
- **string** `ShippingState`
- **string** `ShippingZip`
- **string** `ShippingCountry`
- **string** `ShippingPhone`
+ **string** `PhoneNumber`: The phone number used during purchase.
 
 **string** `ShippingMethodName`: The specific type of shipping. Populates 'shipmethod' in NetSuite.
    _Options_: "UPS Ground", "UPS 2nd Day Air", "UPS 2nd Day Air A.M.", "UPS 3 Day Select", "UPS Freight", "UPS Freight LTL Guaranteed", "UPS Next Day Air", "UPS Next Day Air Early A.M."
@@ -78,10 +82,15 @@ _Will default to billing address if not provided_
 
 **string** `Note`: Order comments. Populates 'memo'  in NetSuite.
 
-**int** `SH`: Shipping cost. Defaults to 0.00 if not provided
+**int** `SH`: Shipping and handling cost. Defaults to 0.00.
+
+**int** `PaymentMethodId`: The NetSuite internal ID of the payment method used during checkout (Credit card, PayPal, Amazon Marketplace, etc.). Populates _paymentmethod_. Defaults to _Credit Card_.
+
+**bool** `PersonalItem`: A flag used to identify if the item is for personal-use only. Defaults to `false`. _Note_: this is currently only used for Google Nest Pro orders.
 
 
-### Example Request
+
+## Example Request
 ```
 {
    "CustomerId": 17494445,

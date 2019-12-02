@@ -119,7 +119,7 @@ function(record, helper) {
                 ["otherrefnum", "SiteOrderNumber"],
                 ["custbody7", "SameDayShipping"],
                 ["custbody61", "JobName"],
-                ["custbody270", "AltOrderNumber"],
+                ["shipmethod", "ShippingMethodName"],
 
                 // General info
                 ["custbody_ss_brontoid", "BrontoId"],
@@ -170,9 +170,10 @@ function(record, helper) {
                 ShippingCity: shippingAddressValues.ShippingCity,
                 ShippingState: shippingAddressValues.ShippingState,
                 ShippingZip: shippingAddressValues.ShippingZip,
+                ShippingPhone: shippingAddressValues.ShippingPhone,
                 Items: lineItemValues,
                 RelatedEstimate: salesOrderRecordValues.RelatedEstimate,
-                AltOrderNumber: salesOrderRecordValues.AltOrderNumber
+                ShippingMethodName: salesOrderRecordValues.ShippingMethodName
             }
             
         } catch(err) {
@@ -214,7 +215,8 @@ function(record, helper) {
             ["addr2", "ShippingLine2"],
             ["city", "ShippingCity"],
             ["state", "ShippingState"],
-            ["zip", "ShippingZip"]
+            ["zip", "ShippingZip"],
+            ["addrphone", "ShippingPhone"]
         ];
         
         var shippingAddressValues = helper.getValues(shippingAddressSubRecord, fieldIdsArray);	
