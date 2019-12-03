@@ -25,7 +25,7 @@ function(record, search, teamsLog, helper) {
                 "ShippingFirstName",
                 "ShippingLastName",
                 "ShippingLine1",
-                "ShippingZip",
+                "ShippingZip"
             ];
             checkRequiredFields(requestBody, requiredFields);
             
@@ -215,7 +215,6 @@ function(record, search, teamsLog, helper) {
 
     function setSalesOrderValues(salesOrderRecord, requestBody, items){
         try {
-            log.debug("salesOrderRecord", salesOrderRecord);
             // Default taxable to true
             salesOrderRecord.setValue({ fieldId: "istaxable", value: true });
 
@@ -248,14 +247,13 @@ function(record, search, teamsLog, helper) {
             if(!hasRelatedEstimate){
                 propertiesAndFieldIds.push(["SameDayShipping", "custbody7"]);
             }
-            log.debug("requestBody", requestBody);
             checkPropertyAndSetValues(salesOrderRecord, requestBody, propertiesAndFieldIds);
 
             setBillingAddress(salesOrderRecord, requestBody);
             setShippingAddress(salesOrderRecord, requestBody);
 
             addItems(salesOrderRecord, items);
-            log.debug("salesOrderRecord", salesOrderRecord);
+
             var salesOrderRecordId = salesOrderRecord.save();
             
             return salesOrderRecordId;
@@ -389,8 +387,7 @@ function(record, search, teamsLog, helper) {
         for(var i=0; i < propertiesAndFieldIds.length; i++){
             var property = propertiesAndFieldIds[i][0];
             var fieldId = propertiesAndFieldIds[i][1];
-            log.debug("property",property);
-            log.debug("fieldId",fieldId);
+
             if(requestObj.hasOwnProperty(property) && requestObj[property]){
                 var value = requestObj[property];
                 
@@ -398,11 +395,10 @@ function(record, search, teamsLog, helper) {
                 // Sets the default value if one is not provided in the request
                 var value = getDefaultValue(property);
             }
-            log.debug("value",value);
+            
             salesOrderRecord.setValue({ fieldId: fieldId, value: value });
         }
 
-        log.debug("salesOrderRecord", salesOrderRecord);
         return;
     }
 
