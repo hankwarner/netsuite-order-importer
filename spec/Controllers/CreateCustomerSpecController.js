@@ -6,7 +6,8 @@
 define(['N/record', 'N/https', 'S/helpers'],
 
 function(record, https, helper) {
-    var createCustomerRESTletUrl = "https://634494.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1762&deploy=1";
+    // var createCustomerRESTletUrl = "https://634494.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1762&deploy=1";
+    var createCustomerRESTletUrl = "https://634494-sb1.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1783&deploy=1";
 
     function onRequest(context) {
     	try{
@@ -15,11 +16,12 @@ function(record, https, helper) {
             var functionType = context.request.parameters.functionType;
             var headers = {
                 "Content-Type": "application/json",
-                "Authorization": "NLAuth nlauth_account=634494,nlauth_email=wildcat@hmwallace.com,nlauth_signature=March2015!,nlauth_role=1030"
+                // "Authorization": "NLAuth nlauth_account=634494,nlauth_email=wildcat@hmwallace.com,nlauth_signature=March2015!,nlauth_role=1030"
+                "Authorization": "NLAuth nlauth_account=634494_SB1,nlauth_email=wildcat@hmwallace.com,nlauth_signature=March2015!,nlauth_role=1030"
             }
             
             // Create new customer
-            if(functionType == "create"){
+            if(functionType == "create" || functionType == "existing"){
                 var response = createCustomerRecord(jsonRequest, headers);
             }
             
@@ -58,9 +60,9 @@ function(record, https, helper) {
                 body: jsonRequest,
                 headers: headers
             });
-
+            
             var parsedResponse = JSON.parse(restletResponse.body);
-
+            log.debug("parsedResponse", parsedResponse);
             if(parsedResponse.hasOwnProperty("error")){
             	throw new Error(parsedResponse.error);
             }
