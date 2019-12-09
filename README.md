@@ -1,25 +1,26 @@
-# Description
+
+# WebsiteOrderImporterRESTlet
 API endpoint for importing orders from microsites, such as Pro.Supply.com, Google Nest Pro, etc., into NetSuite for fulfillment and reporting.
 
 
 
-# Headers
+## Headers
 **required** `Content-Type: application/json`
 
 **required** `Authorization: NLAuth nlauth_account={NS_ACCT_ID},nlauth_email={NS_EMAIL},nlauth_signature={NS_PW},nlauth_role={NS_ROLE}`
 
 
 
-# Body
+## Body
 Accepts a JSON object with the following key-value pairs:
 
 
-## Required
+### Required
  **int** `CustomerId`: Internal NetSuite ID of the customer. 
 
  **string** `SiteOrderNumber`: Purchase Order number from the respective microservice. Populates _otherrefnum_. 
 
-### Items:
+#### Items:
  **Array<object>** `Items`: an array of objects containing the items on the order. Each object must include the following:
       
    **string** `ItemId`: the NetSuite internal ID of the item
@@ -30,7 +31,7 @@ Accepts a JSON object with the following key-value pairs:
 
    **int** `Amount`: total item cost (Quantity * Rate)
 
-### Billing address:
+#### Billing address:
  **string** `BillingFirstName`
 
  **string** `BillingLastName`
@@ -47,7 +48,7 @@ Accepts a JSON object with the following key-value pairs:
 
  **string** `BillingCountry`
 
-### Shipping address:
+#### Shipping address:
  **string** `ShippingFirstName`
 
  **string** `ShippingLastName`
@@ -67,7 +68,7 @@ Accepts a JSON object with the following key-value pairs:
  **string** `ShippingPhone`
 
 
-## Optional
+### Optional
  **string** `AltOrderNumber`: The payment processing ID. Populates _custbody270_ (Processing Gateway ID).
 
  **string** `JobName`: The customer's job name they are purchasing for. Populates _custbody61_.
@@ -88,9 +89,9 @@ Accepts a JSON object with the following key-value pairs:
 
 **string** `CheckoutTypeId`: The ID of the checkout type used during the transaction (Amazon Marketplace, PayPal, etc.). Populates _custbody40_ (Order Type).
 
- **string** `Email`: The billing email used during purchase.
+**string** `Email`: The billing email used during purchase.
 
- **string** `PhoneNumber`: The billing phone number used during purchase.
+**string** `PhoneNumber`: The billing phone number used during purchase.
 
 **string** `ShippingMethodName`: The specific type of shipping. Populates _shipmethod_ in NetSuite.
    _Options_: "UPS Ground", "UPS 2nd Day Air", "UPS 2nd Day Air A.M.", "UPS 3 Day Select", "UPS Freight", "UPS Freight LTL Guaranteed", "UPS Next Day Air", "UPS Next Day Air Early A.M."
@@ -106,7 +107,7 @@ Accepts a JSON object with the following key-value pairs:
 
 
 
-# Example Request
+## Example Request
 ```
 {
    "CustomerId": 17494445,
@@ -144,7 +145,6 @@ Accepts a JSON object with the following key-value pairs:
    "UserTypeId": 2,
    "CheckoutTypeId": 4,
    "PaymentMethodId": 1,
-   "SameDayShipping": 1,
    "PersonalItem": false
    "Items": [
       {
@@ -165,12 +165,12 @@ Accepts a JSON object with the following key-value pairs:
 
 
 
-# Returns
+## Returns
 `application/json`
 
 
 
-## Example Success Response
+### Example Success Response
 ```
 {
    "salesOrderRecordId": "7154894614"
@@ -178,10 +178,130 @@ Accepts a JSON object with the following key-value pairs:
 ```
 
 
-## Example Error Response
+### Example Error Response
 ```
 {
    "error": "Invalid customer id."
+}
+```
+
+
+
+
+# CreateCustomerRESTlet
+API endpoint for creating new customer records in NetSuite (matching on email). If the customer does not exist in NetSuite, a new record will be created. The customer's internal NetSuite record ID is returned in the response.
+
+
+
+## Headers
+**required** `Content-Type: application/json`
+
+**required** `Authorization: NLAuth nlauth_account={NS_ACCT_ID},nlauth_email={NS_EMAIL},nlauth_signature={NS_PW},nlauth_role={NS_ROLE}`
+
+
+
+## Body
+Accepts a JSON object with the following key-value pairs:
+
+
+### Required
+**string** `Email`: The customer's primary email address.
+
+#### Billing address:
+**string** `BillingFirstName`
+
+**string** `BillingLastName`
+
+**string** `BillingLine1`
+
+**string** `BillingCity`
+
+**string** `BillingState`
+
+**string** `BillingZip`
+
+
+#### Shipping address:
+**string** `ShippingFirstName`
+
+**string** `ShippingLastName`
+
+**string** `ShippingLine1`
+
+**string** `ShippingCity`
+
+**string** `ShippingState`
+
+**string** `ShippingZip`
+
+
+### Optional
+**string** `BillingLine2`
+
+**string** `BillingCountry`
+
+**string** `ShippingLine2`
+ 
+**string** `ShippingCountry`
+
+**string** `PhoneNumber`: The customer's primary phone number.
+
+**string** `UserTypeId`: The ID of the user category type (plumber, contractor, etc.). Populates _custbody28_ (Category).
+
+**string** `Department`: NetSuite department ID. Most frequently, 29 (Pro Sales) or 27 (D2C). Populates _department_.
+
+**string** `Company`: The customer's primary company.
+
+**string** `SameDayShipping`: The type of shipping for the customer (ie, same-day fully committed, held orders, etc.). Populates _custentity7_.
+
+
+
+## Example Request
+```
+{
+   "Email": "BarryBlock@CousineauActingStudio.com",
+   "BillingFirstName": "Barry",
+   "BillingLastName": "Block",
+   "Department": "29",
+   "UserTypeId": "4",
+   "PhoneNumber": "7064642574",
+   "Company": "Gene Cousineau's Acting Studio",
+   "SameDayShipping": "2",
+   "BillingLine1:" "311 Amber Lane",
+   "BillingLine2": "Apt B",
+   "BillingCity": "Ventura",
+   "BillingState": "CA",
+   "BillingZip": "90754",
+   "ShippingFirstName": "Sally",
+   "ShippingLastName": "Reed",
+   "ShippingLine1": "141 Tupelo Dr.",
+   "ShippingLine2": "Unit 605",
+   "ShippingCity": "Santa Monica",
+   "ShippingState": "CA",
+   "ShippingZip": "91578"
+}
+```
+
+
+
+## Returns
+`application/json`
+
+
+
+### Example Success Response
+```
+{
+   "customerId": "18048720",
+   "sameDayShipping": "3"
+}
+```
+
+
+### Example Error Response
+```
+{
+   "error": "Email is required"
 }
 ```
 
