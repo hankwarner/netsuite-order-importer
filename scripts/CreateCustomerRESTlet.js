@@ -21,14 +21,15 @@ function(record, search, teamsLog) {
 				"ShippingFirstName",
                 "ShippingLastName",
                 "ShippingLine1",
-                "ShippingZip"
+				"ShippingZip",
+				"Microsite"
             ];
 			checkRequiredFields(requestBody, requiredFields);
 			
 			var customerEmail = requestBody.Email;
 
             // Check if customer exists
-			var getCustomerByEmailResponse = getCustomerByEmail(customerEmail);
+			var getCustomerByEmailResponse = getCustomerByEmail(customerEmail, requestBody.Microsite);
            
             if(getCustomerByEmailResponse){
 				var customerId = getCustomerByEmailResponse[0];
@@ -68,14 +69,18 @@ function(record, search, teamsLog) {
     };
 	
 	
-    function getCustomerByEmail(customerEmail){
+    function getCustomerByEmail(customerEmail, microsite){
+		var searchFilters =[ ["email", "is", customerEmail] ];
+
+		// If order is not from Nest Pro, exclude Nest Pro customer accounts from search results
+		if(microsite != 31){
+			searchFilters.push("AND", ["custentity_ss_nestproid","isempty",""]);
+		}
+		
 		// Match on email
 		var customerSearchByEmail = search.create({
 			type: "customer",
-			filters:
-			[
-				["email","is",customerEmail]
-			],
+			filters: searchFilters,
 			columns:
 			[
 				search.createColumn({name: "internalid"}),
@@ -89,16 +94,15 @@ function(record, search, teamsLog) {
 		if(!customerSearchByEmailResults || customerSearchByEmailResults.length == 0){
 			log.audit("Customer does not exist");
 			return false;
-
-		} else {
-			var customerId = customerSearchByEmailResults[0].getValue(customerSearchByEmail.columns[0]);
-			var sameDayShipping = customerSearchByEmailResults[0].getValue(customerSearchByEmail.columns[1]);
-			
-			return [customerId, sameDayShipping];
 		}
-    }
-	
-	
+
+		var customerId = customerSearchByEmailResults[0].getValue(customerSearchByEmail.columns[0]);
+		var sameDayShipping = customerSearchByEmailResults[0].getValue(customerSearchByEmail.columns[1]);
+		
+		return [customerId, sameDayShipping];
+	}
+
+
     function createCustomerRecord(requestBody){
     	log.audit("createCustomerRecord called");
     	try{

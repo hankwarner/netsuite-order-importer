@@ -42,7 +42,7 @@ describe("Import Orders From Supply.com", () => {
                 IPAddress: "68.191.240.43",
                 RelatedEstimate: null,
                 SignifydID: "1154999499",
-                Microsite: "27",
+                Microsite: "31",
                 CheckoutTypeId: "4",
                 PaymentMethodId: "12",
                 SameDayShipping: "2",
@@ -93,7 +93,7 @@ describe("Import Orders From Supply.com", () => {
             expect(this.controllerResponse.SignifydID).toBe(this.orderWithoutRelatedEstimate.SignifydID);
             expect(this.controllerResponse.DiscountNames).toBe(this.orderWithoutRelatedEstimate.DiscountNames);
             expect(this.controllerResponse.CheckoutTypeId).toBe(this.orderWithoutRelatedEstimate.CheckoutTypeId);
-            expect(this.controllerResponse.Taxable).toBeTruthy();
+            expect(this.controllerResponse.Taxable).toBeFalsy();
         });
 
         test("should set the general infomation fields", () => {
@@ -252,7 +252,6 @@ describe("Import Orders From Supply.com", () => {
             expect(this.controllerResponse.SignifydID).toBe(this.orderWithRelatedEstimate.SignifydID);
             expect(this.controllerResponse.DiscountNames).toBe(this.orderWithRelatedEstimate.DiscountNames);
             expect(this.controllerResponse.CheckoutTypeId).toBe(this.orderWithRelatedEstimate.CheckoutTypeId);
-            expect(this.controllerResponse.Taxable).toBeTruthy();
         });
 
         test("should set the general infomation fields", () => {

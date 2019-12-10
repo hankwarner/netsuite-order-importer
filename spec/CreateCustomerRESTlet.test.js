@@ -26,7 +26,8 @@ describe("Create Customer", () => {
                 ShippingLine2: "Unit 605",
                 ShippingCity: faker.address.city(),
                 ShippingState: "GA",
-                ShippingZip: "30316"
+                ShippingZip: "30316",
+                Microsite: 27
             }
             
             this.request = JSON.stringify(this.newCustomerToCreate);
@@ -104,7 +105,8 @@ describe("Create Customer", () => {
                 ShippingLine2: "Unit 605",
                 ShippingCity: "Santa Monica",
                 ShippingState: "CA",
-                ShippingZip: "91578"
+                ShippingZip: "91578",
+                Microsite: 27
             }
             
             this.request = JSON.stringify(this.newCustomerToCreate);
@@ -161,45 +163,47 @@ describe("Create Customer", () => {
     });
 
 
-    describe("Throw exception if required field is midding", () => {
+    describe("Nest Pro Customers", () => {
         this.customer = {
-            Email: "BarryBlock@CousineauActingStudio.com",
-            BillingFirstName: "Barry",
-            BillingLastName: "Block",
-            BillingLine1: "311 Amber Lane",
-            BillingCity: "Ventura",
-            BillingState: "CA",
-            BillingZip: "90754",
+            Email: "mortysmith@rickandmorty.com",
+            BillingFirstName: "Morty",
+            BillingLastName: "Smith",
+            BillingLine1: "1990 Harry Herpson Rd",
+            BillingCity: "Atlanta",
+            BillingState: "GA",
+            BillingZip: "30312",
+            ShippingFirstName: "Rick",
+            ShippingLastName: "Sanchez",
+            ShippingLine1: "7884 Wubba Lubba Dub-Dub Rd",
+            ShippingLine2: "",
+            ShippingCity: "Atlanta",
+            ShippingState: "GA",
+            ShippingZip: "30316",
+            Microsite: 27
         }
 
-        test("should throw exception if email is missing", () => {
-            // Remove email
-            this.customer.Email = "";
-            
+        test("should use the non-Google child account for non-Nest Pro orders", () => {
             this.request = JSON.stringify(this.customer);
             createCustomerSpecControllerUrl += "&request="+this.request;
             createCustomerSpecControllerUrl += "&functionType=existing";
         
-            this.response = httpRequest.get(createCustomerSpecControllerUrl);
+            this.nonNestProCustomerResponse = httpRequest.get(createCustomerSpecControllerUrl);
             
-            expect(this.response.error).toBe("Email is required");
+            expect(this.nonNestProCustomerResponse.CustomerRecordId).toBe("17496804");
 
-            // Reset the url
             createCustomerSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1786&deploy=1&compid=634494_SB1&h=4f268df624984b2c93a5";
         });
 
-        test("should throw exception if billing name is missing", () => {
-            // Set email back and remove first name
-            this.customer.Email = "BarryBlock@CousineauActingStudio.com";
-            this.customer.BillingFirstName = "";
+        test("should use the Google child account for Nest Pro orders", () => {
+            this.customer.Microsite = 31;
             
             this.request = JSON.stringify(this.customer);
             createCustomerSpecControllerUrl += "&request="+this.request;
             createCustomerSpecControllerUrl += "&functionType=existing";
         
-            this.response = httpRequest.get(createCustomerSpecControllerUrl);
+            this.nestProCustomerResponse = httpRequest.get(createCustomerSpecControllerUrl);
             
-            expect(this.response.error).toBe("BillingFirstName is required");
+            expect(this.nestProCustomerResponse.CustomerRecordId).toBe("17496803");
         });
 
         // Reset the Suitelet url to its original form
@@ -207,4 +211,52 @@ describe("Create Customer", () => {
             createCustomerSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1786&deploy=1&compid=634494_SB1&h=4f268df624984b2c93a5";
         });
     });
+
+
+    // describe("Throw exception if required field is missing", () => {
+    //     this.customer = {
+    //         Email: "BarryBlock@CousineauActingStudio.com",
+    //         BillingFirstName: "Barry",
+    //         BillingLastName: "Block",
+    //         BillingLine1: "311 Amber Lane",
+    //         BillingCity: "Ventura",
+    //         BillingState: "CA",
+    //         BillingZip: "90754",
+    //     }
+
+    //     test("should throw exception if email is missing", () => {
+    //         // Remove email
+    //         this.customer.Email = "";
+            
+    //         this.request = JSON.stringify(this.customer);
+    //         createCustomerSpecControllerUrl += "&request="+this.request;
+    //         createCustomerSpecControllerUrl += "&functionType=existing";
+        
+    //         this.response = httpRequest.get(createCustomerSpecControllerUrl);
+            
+    //         expect(this.response.error).toBe("Email is required");
+
+    //         // Reset the url
+    //         createCustomerSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1786&deploy=1&compid=634494_SB1&h=4f268df624984b2c93a5";
+    //     });
+
+    //     test("should throw exception if billing name is missing", () => {
+    //         // Set email back and remove first name
+    //         this.customer.Email = "BarryBlock@CousineauActingStudio.com";
+    //         this.customer.BillingFirstName = "";
+            
+    //         this.request = JSON.stringify(this.customer);
+    //         createCustomerSpecControllerUrl += "&request="+this.request;
+    //         createCustomerSpecControllerUrl += "&functionType=existing";
+        
+    //         this.response = httpRequest.get(createCustomerSpecControllerUrl);
+            
+    //         expect(this.response.error).toBe("BillingFirstName is required");
+    //     });
+
+    //     // Reset the Suitelet url to its original form
+    //     afterAll(() => {
+    //         createCustomerSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1786&deploy=1&compid=634494_SB1&h=4f268df624984b2c93a5";
+    //     });
+    // });
 });
