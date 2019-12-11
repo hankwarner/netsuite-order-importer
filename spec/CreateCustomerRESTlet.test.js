@@ -165,10 +165,18 @@ describe("Create Customer", () => {
 
     describe("Nest Pro Customers", () => {
         this.customer = {
+            NestProId: 99,
+            Taxable: true,
+            TaxVendor: "1990053",
+            ParentAccountId: "17496702",
             Email: "mortysmith@rickandmorty.com",
+            PhoneNumber: "6498076930",
+            Department: "23",
+            Company: "Adult Swim",
             BillingFirstName: "Morty",
             BillingLastName: "Smith",
             BillingLine1: "1990 Harry Herpson Rd",
+            BillingLine2: "Apt C",
             BillingCity: "Atlanta",
             BillingState: "GA",
             BillingZip: "30312",
@@ -179,7 +187,9 @@ describe("Create Customer", () => {
             ShippingCity: "Atlanta",
             ShippingState: "GA",
             ShippingZip: "30316",
-            Microsite: 27
+            Microsite: "27",
+            UserTypeId: "4",
+            SameDayShipping: "3"
         }
 
         test("should use the non-Google child account for non-Nest Pro orders", () => {
@@ -189,7 +199,7 @@ describe("Create Customer", () => {
         
             this.nonNestProCustomerResponse = httpRequest.get(createCustomerSpecControllerUrl);
             
-            expect(this.nonNestProCustomerResponse.CustomerRecordId).toBe("17496804");
+            expect(this.nonNestProCustomerResponse.CustomerRecordId).toBe("17498104");
 
             createCustomerSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1786&deploy=1&compid=634494_SB1&h=4f268df624984b2c93a5";
         });
@@ -203,7 +213,82 @@ describe("Create Customer", () => {
         
             this.nestProCustomerResponse = httpRequest.get(createCustomerSpecControllerUrl);
             
-            expect(this.nestProCustomerResponse.CustomerRecordId).toBe("17496803");
+            expect(this.nestProCustomerResponse.CustomerRecordId).toBe("17497406");
+
+            createCustomerSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1786&deploy=1&compid=634494_SB1&h=4f268df624984b2c93a5";
+        });
+
+        test("should create a new Nest Pro customer as a child account of Google", () => {
+            this.customer.NestProId = 7777777;
+            
+            this.request = JSON.stringify(this.customer);
+            createCustomerSpecControllerUrl += "&request="+this.request;
+            createCustomerSpecControllerUrl += "&functionType=create";
+        
+            this.newNestProCustomerResponse = httpRequest.get(createCustomerSpecControllerUrl);
+            
+            expect(this.newNestProCustomerResponse.CustomerRecordId).not.toBeNull();
+            expect(this.newNestProCustomerResponse.Taxable).toBe(this.customer.Taxable);
+            expect(this.newNestProCustomerResponse.TaxItem).toBe(this.customer.TaxVendor);
+            expect(this.newNestProCustomerResponse.IsPerson).toBe("T");
+            expect(this.newNestProCustomerResponse.Email).toBe(this.customer.Email);
+            expect(this.newNestProCustomerResponse.PhoneNumber).toBe(this.customer.PhoneNumber);
+            expect(this.newNestProCustomerResponse.Company).toBe(this.customer.Company);
+            expect(this.newNestProCustomerResponse.BillingFirstName).toBe(this.customer.BillingFirstName);
+            expect(this.newNestProCustomerResponse.BillingLastName).toBe(this.customer.BillingLastName);
+            expect(this.newNestProCustomerResponse.AltName).toBe(this.customer.BillingFirstName.concat(" "+this.customer.BillingLastName));
+            expect(this.newNestProCustomerResponse.Department).toBe(this.customer.Department);
+            expect(this.newNestProCustomerResponse.UserTypeId).toBe(this.customer.UserTypeId);
+            expect(this.newNestProCustomerResponse.SameDayShipping).toBe(this.customer.SameDayShipping);
+            expect(this.newNestProCustomerResponse.BillingAddressee).toBe(this.customer.BillingFirstName.concat(" "+this.customer.BillingLastName));
+            expect(this.newNestProCustomerResponse.BillingLine1).toBe(this.customer.BillingLine1);
+            expect(this.newNestProCustomerResponse.BillingLine2).toBe(this.customer.BillingLine2);
+            expect(this.newNestProCustomerResponse.BillingCity).toBe(this.customer.BillingCity);
+            expect(this.newNestProCustomerResponse.BillingState).toBe(this.customer.BillingState);
+            expect(this.newNestProCustomerResponse.BillingZip).toBe(this.customer.BillingZip);
+            expect(this.newNestProCustomerResponse.ShippingAddressee).toBe(this.customer.ShippingFirstName.concat(" "+this.customer.ShippingLastName));
+            expect(this.newNestProCustomerResponse.ShippingLine1).toBe(this.customer.ShippingLine1);
+            expect(this.newNestProCustomerResponse.ShippingLine2).toBe(this.customer.ShippingLine2);
+            expect(this.newNestProCustomerResponse.ShippingCity).toBe(this.customer.ShippingCity);
+            expect(this.newNestProCustomerResponse.ShippingState).toBe(this.customer.ShippingState);
+            expect(this.newNestProCustomerResponse.ShippingZip).toBe(this.customer.ShippingZip);
+            expect(this.newNestProCustomerResponse.NestProId).toBe(this.customer.NestProId);
+            expect(this.newNestProCustomerResponse.ParentAccountId).toBe(this.customer.ParentAccountId);
+
+            createCustomerSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1786&deploy=1&compid=634494_SB1&h=4f268df624984b2c93a5";
+        });
+
+        test("should set customer as tax exempt", () => {
+            this.customer.NestProId = 99;
+            this.customer.Taxable = false;
+            this.customer.TaxVendor = "";
+            
+            this.request = JSON.stringify(this.customer);
+            createCustomerSpecControllerUrl += "&request="+this.request;
+            createCustomerSpecControllerUrl += "&functionType=existing";
+        
+            this.taxExemptCustomerResponse = httpRequest.get(createCustomerSpecControllerUrl);
+            
+            expect(this.taxExemptCustomerResponse.Taxable).toBe(this.customer.Taxable);
+            expect(this.taxExemptCustomerResponse.TaxItem).toBe(this.customer.TaxVendor);
+
+            createCustomerSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1786&deploy=1&compid=634494_SB1&h=4f268df624984b2c93a5";
+        });
+
+        test("should set customer to not tax exempt", () => {
+            this.customer.Taxable = true;
+            this.customer.TaxVendor = "1990053";
+            
+            this.request = JSON.stringify(this.customer);
+            createCustomerSpecControllerUrl += "&request="+this.request;
+            createCustomerSpecControllerUrl += "&functionType=existing";
+        
+            this.nonTaxExemptCustomerResponse = httpRequest.get(createCustomerSpecControllerUrl);
+            
+            expect(this.nonTaxExemptCustomerResponse.Taxable).toBe(this.customer.Taxable);
+            expect(this.nonTaxExemptCustomerResponse.TaxItem).toBe(this.customer.TaxVendor);
+
+            createCustomerSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1786&deploy=1&compid=634494_SB1&h=4f268df624984b2c93a5";
         });
 
         // Reset the Suitelet url to its original form

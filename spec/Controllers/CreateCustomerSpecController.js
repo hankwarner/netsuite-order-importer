@@ -108,13 +108,19 @@ function(record, https, helper) {
                 ["shipaddr2", "ShippingLine2"],
                 ["shipcity", "ShippingCity"],
                 ["shipstate", "ShippingState"],
-                ["shipzip", "ShippingZip"]
+                ["shipzip", "ShippingZip"],
+
+                // Nest Pro fields
+                ["custentity_ss_nestproid", "NestProId"],
+                ["parent", "ParentAccountId"],
             ];
             
             var customerRecordValues = helper.getValues(customerRecord, fieldIdsArray);
             
             var response = {
                 CustomerRecordId: customerRecordId,
+                ParentAccountId: customerRecordValues.ParentAccountId,
+                NestProId: customerRecordValues.NestProId,
                 Taxable: customerRecordValues.Taxable,
                 TaxItem: customerRecordValues.TaxItem,
                 IsPerson: customerRecordValues.IsPerson,

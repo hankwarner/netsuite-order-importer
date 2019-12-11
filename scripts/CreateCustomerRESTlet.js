@@ -7,7 +7,11 @@ define(['N/record', 'N/search', 'S/teamslog.js'],
 
 function(record, search, teamsLog) {
 	const teamsUrl = "https://outlook.office.com/webhook/ccaff0e4-631a-4421-b57a-c899e744d60f@3c2f8435-994c-4552-8fe8-2aec2d0822e4/IncomingWebhook/9627607123264385b536d2c1ff1dbd4b/f69cfaae-e768-453b-8323-13e5bcff563f";
-	
+	const d2c = "27";
+	const homeOwner = "2";
+	const avatax = "1990053";
+	const nestProMicrositeId = 31;
+
     function doPost(requestBody) {
         try{
 			log.audit("requestBody", requestBody);
@@ -25,15 +29,18 @@ function(record, search, teamsLog) {
 				"Microsite"
             ];
 			checkRequiredFields(requestBody, requiredFields);
-			
-			var customerEmail = requestBody.Email;
 
             // Check if customer exists
-			var getCustomerByEmailResponse = getCustomerByEmail(customerEmail, requestBody.Microsite);
-           
-            if(getCustomerByEmailResponse){
-				var customerId = getCustomerByEmailResponse[0];
-				var sameDayShipping = getCustomerByEmailResponse[1];
+			var getCustomerIdResponse = getCustomerId(requestBody);
+			
+            if(getCustomerIdResponse){
+				var customerId = getCustomerIdResponse[0];
+				var sameDayShipping = getCustomerIdResponse[1];
+				
+				// For existing Nest Pro customers, make sure the tax status matches the most current status in Big Commerce
+				if(requestBody.Microsite == nestProMicrositeId){
+					setTaxExemptionStatus(requestBody.Taxable, customerId);
+				}
 
 			} else {
 				var customerId = createCustomerRecord(requestBody);
@@ -69,16 +76,11 @@ function(record, search, teamsLog) {
     };
 	
 	
-    function getCustomerByEmail(customerEmail, microsite){
-		var searchFilters =[ ["email", "is", customerEmail] ];
-
-		// If order is not from Nest Pro, exclude Nest Pro customer accounts from search results
-		if(microsite != 31){
-			searchFilters.push("AND", ["custentity_ss_nestproid","isempty",""]);
-		}
+    function getCustomerId(requestBody){
+		var searchFilters = createSearchFilters(requestBody);
 		
 		// Match on email
-		var customerSearchByEmail = search.create({
+		var customerSearch = search.create({
 			type: "customer",
 			filters: searchFilters,
 			columns:
@@ -89,17 +91,46 @@ function(record, search, teamsLog) {
 		});
 
 		// Get the first customer that matches
-		var customerSearchByEmailResults = customerSearchByEmail.run().getRange(0, 1);
-
-		if(!customerSearchByEmailResults || customerSearchByEmailResults.length == 0){
+		var customerSearchResults = customerSearch.run().getRange(0, 1);
+		
+		if(!customerSearchResults || customerSearchResults.length == 0){
 			log.audit("Customer does not exist");
 			return false;
 		}
 
-		var customerId = customerSearchByEmailResults[0].getValue(customerSearchByEmail.columns[0]);
-		var sameDayShipping = customerSearchByEmailResults[0].getValue(customerSearchByEmail.columns[1]);
+		var customerId = customerSearchResults[0].getValue(customerSearch.columns[0]);
+		var sameDayShipping = customerSearchResults[0].getValue(customerSearch.columns[1]);
 		
 		return [customerId, sameDayShipping];
+	}
+
+
+	function createSearchFilters(requestBody){
+		var microsite = requestBody.Microsite;
+		var searchFilters;
+
+		// If order is from Nest Pro, match on Nest Pro ID instead of email
+		if(microsite == nestProMicrositeId){
+			var nestProId = requestBody.NestProId;
+			
+			searchFilters = 
+			[
+				["custentity_ss_nestproid","equalto", nestProId]
+			];
+
+		} else {
+			// For all other orders, match on email and exclude any Google child accounts
+			var customerEmail = requestBody.Email;
+
+			searchFilters = 
+			[
+				["email", "is", customerEmail],
+				"AND",
+				["custentity_ss_nestproid","isempty",""]
+			];
+		}
+		
+		return searchFilters;
 	}
 
 
@@ -132,16 +163,6 @@ function(record, search, teamsLog) {
 
 	function setCustomerFields(customerRecord, requestBody){
 		try{
-			// Always default taxable to true and taxitem to AVATAX
-			var avatax = "1990053";
-			var defaultTaxFields = [
-				// fieldId, value
-				["taxable", true],
-				["taxitem", avatax],
-				["isperson", "T"]
-			];
-			setFieldValues(customerRecord, defaultTaxFields);
-
 			// Full name:
 			requestBody.BillingName = requestBody.BillingFirstName + " " + requestBody.BillingLastName;
 			
@@ -155,21 +176,53 @@ function(record, search, teamsLog) {
 				["UserTypeId", "category"],
 				["PhoneNumber", "phone"],
 				["Company", "companyname"],
-				["SameDayShipping", "custentity7"]
-                
-            ];
+				["SameDayShipping", "custentity7"],
+				["NestProId", "custentity_ss_nestproid"],
+				["ParentAccountId", "parent"],
+				["Taxable", "taxable"],
+				["TaxVendor", "taxitem"],
+				["IsPerson", "isperson"]
+			];
 			checkPropertyAndSetValues(customerRecord, requestBody, propertiesAndFieldIds);
 
 			return;
 
 		} catch(err){
 			log.error("Error in setCustomerFields ", err);
-
-			// Fatal error
-			if(err.message == "BillingFirstName is required"){
-				throw err;
-			}
 		}
+	}
+
+
+	function setTaxExemptionStatus(bigCommerceTaxExemptionStatus, customerId){
+		var taxExemptionStatusLookup = search.lookupFields({
+			type: search.Type.CUSTOMER,
+			id: customerId,
+			columns: ['taxable']
+		});
+
+		var netsuiteTaxExemptionStatus = taxExemptionStatusLookup.taxable;
+
+		if(netsuiteTaxExemptionStatus != bigCommerceTaxExemptionStatus){
+			log.audit("updating tax values");
+			var taxValues = {
+				"taxable": bigCommerceTaxExemptionStatus
+			}
+
+			if(bigCommerceTaxExemptionStatus){
+				taxValues["taxitem"] = avatax;
+
+			} else {
+				taxValues["taxitem"] = "";
+			}
+			
+			record.submitFields({
+				type: record.Type.CUSTOMER,
+				id: customerId,
+				values: taxValues
+			});
+		}
+
+		return;
 	}
 
 
@@ -278,35 +331,8 @@ function(record, search, teamsLog) {
 	}
 
 
-	function setFieldValues(customerRecord, fieldIdAndValueArray){
-        try {
-            for(var i=0; i < fieldIdAndValueArray.length; i++){
-                var fieldId = fieldIdAndValueArray[i][0];
-                var value = fieldIdAndValueArray[i][1];
-    
-                customerRecord.setValue({
-                    fieldId: fieldId,
-                    value: value
-                });
-            }
-
-            return;
-
-        } catch (err) {
-            var message = {
-                from: "Error in setFieldValues",
-                message: err.message,
-                color: "yellow"
-            }
-            teamsLog.log(message, teamsUrl);
-        }
-    }
-
-
 	function getDefaultValue(property){
 		var defaultValue;
-		const d2c = "27";
-		const homeOwner = "2";
 
         switch (property) {
             case "Department":
@@ -314,6 +340,15 @@ function(record, search, teamsLog) {
 				break;
 			case "UserTypeId":
                 defaultValue = homeOwner;
+				break;
+			case "Taxable":
+				defaultValue = true;
+				break;
+			case "TaxVendor":
+				defaultValue = avatax;
+				break;
+			case "IsPerson":
+				defaultValue = "T";
 				break;
             default:
                 defaultValue = "";
