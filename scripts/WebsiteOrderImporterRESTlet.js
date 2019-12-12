@@ -215,9 +215,6 @@ function(record, search, teamsLog, helper) {
 
     function setSalesOrderValues(salesOrderRecord, requestBody, items){
         try {
-            // Default taxable to true
-            salesOrderRecord.setValue({ fieldId: "istaxable", value: true });
-
             if(requestBody.hasOwnProperty("ShippingMethodName")){
                 var shippingMethodName = requestBody.ShippingMethodName;
                 requestBody.ShippingMethodName = helper.mapShippingValues(shippingMethodName);
@@ -254,6 +251,8 @@ function(record, search, teamsLog, helper) {
 
             addItems(salesOrderRecord, items);
 
+            setTaxableCheckbox(salesOrderRecord, requestBody);
+
             var salesOrderRecordId = salesOrderRecord.save();
             
             return salesOrderRecordId;
@@ -262,6 +261,19 @@ function(record, search, teamsLog, helper) {
             log.error("Error in setSalesOrderValues", err);
             throw err;
         }
+    }
+
+
+    function setTaxableCheckbox(requestBody){
+        /* Default taxable to true for all website orders. For Nest Pro orders,
+        *  use the value from the customer record (because some are tax-exempt).
+        *  NetSuite will default to the value on the customer record if not set in the script.
+        */
+        if(requestBody.hasOwnProperty("Microsite") && requestBody.Microsite != 31){
+            salesOrderRecord.setValue({ fieldId: "istaxable", value: true });
+        }
+
+        return;
     }
 
 
