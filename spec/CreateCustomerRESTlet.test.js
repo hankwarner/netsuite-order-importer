@@ -83,6 +83,7 @@ describe("Create Customer", () => {
         });
     });
 
+    
     describe("Return values from existing customer record", () => {
         beforeAll(() => {
             this.newCustomerToCreate = {
@@ -298,50 +299,50 @@ describe("Create Customer", () => {
     });
 
 
-    // describe("Throw exception if required field is missing", () => {
-    //     this.customer = {
-    //         Email: "BarryBlock@CousineauActingStudio.com",
-    //         BillingFirstName: "Barry",
-    //         BillingLastName: "Block",
-    //         BillingLine1: "311 Amber Lane",
-    //         BillingCity: "Ventura",
-    //         BillingState: "CA",
-    //         BillingZip: "90754",
-    //     }
+    describe("Throw exception if required field is missing", () => {
+        this.customer = {
+            Email: "BarryBlock@CousineauActingStudio.com",
+            BillingFirstName: "Barry",
+            BillingLastName: "Block",
+            BillingLine1: "311 Amber Lane",
+            BillingCity: "Ventura",
+            BillingState: "CA",
+            BillingZip: "90754",
+        }
 
-    //     test("should throw exception if email is missing", () => {
-    //         // Remove email
-    //         this.customer.Email = "";
+        test("should throw exception if email is missing", () => {
+            // Remove email
+            this.customer.Email = "";
             
-    //         this.request = JSON.stringify(this.customer);
-    //         createCustomerSpecControllerUrl += "&request="+this.request;
-    //         createCustomerSpecControllerUrl += "&functionType=existing";
+            this.request = JSON.stringify(this.customer);
+            createCustomerSpecControllerUrl += "&request="+this.request;
+            createCustomerSpecControllerUrl += "&functionType=existing";
         
-    //         this.response = httpRequest.get(createCustomerSpecControllerUrl);
+            this.response = httpRequest.get(createCustomerSpecControllerUrl);
             
-    //         expect(this.response.error).toBe("Email is required");
+            expect(this.response.error).toBe("Email is required");
 
-    //         // Reset the url
-    //         createCustomerSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1786&deploy=1&compid=634494_SB1&h=4f268df624984b2c93a5";
-    //     });
+            // Reset the url
+            createCustomerSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1786&deploy=1&compid=634494_SB1&h=4f268df624984b2c93a5";
+        });
 
-    //     test("should throw exception if billing name is missing", () => {
-    //         // Set email back and remove first name
-    //         this.customer.Email = "BarryBlock@CousineauActingStudio.com";
-    //         this.customer.BillingFirstName = "";
+        test("should throw exception if billing name is missing", () => {
+            // Set email back and remove first name
+            this.customer.Email = "BarryBlock@CousineauActingStudio.com";
+            this.customer.BillingFirstName = "";
             
-    //         this.request = JSON.stringify(this.customer);
-    //         createCustomerSpecControllerUrl += "&request="+this.request;
-    //         createCustomerSpecControllerUrl += "&functionType=existing";
+            this.request = JSON.stringify(this.customer);
+            createCustomerSpecControllerUrl += "&request="+this.request;
+            createCustomerSpecControllerUrl += "&functionType=existing";
         
-    //         this.response = httpRequest.get(createCustomerSpecControllerUrl);
+            this.response = httpRequest.get(createCustomerSpecControllerUrl);
             
-    //         expect(this.response.error).toBe("BillingFirstName is required");
-    //     });
+            expect(this.response.error).toBe("BillingFirstName is required");
+        });
 
-    //     // Reset the Suitelet url to its original form
-    //     afterAll(() => {
-    //         createCustomerSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1786&deploy=1&compid=634494_SB1&h=4f268df624984b2c93a5";
-    //     });
-    // });
+        // Reset the Suitelet url to its original form
+        afterAll(() => {
+            createCustomerSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1786&deploy=1&compid=634494_SB1&h=4f268df624984b2c93a5";
+        });
+    });
 });
