@@ -313,6 +313,92 @@ describe("Import Orders From Supply.com", () => {
         });
     });
 
+
+    describe("Throw exception if required field is missing", () => {
+        beforeAll(() => {
+            this.orderWithInactiveItem = {
+                CustomerId: "17494445",
+                SiteOrderNumber: orderNumberGenerator.generateOrderNumber(),
+                Email: "BarryBlock@GeneCousineauActingStudio.com",
+                BillingFirstName: "Barry",
+                BillingLastName: "Block",
+                Department: "29",
+                BillingLine1: "311 Amber Lane",
+                BillingLine2: "Apt B",
+                BillingCity: "Ventura",
+                BillingState: "CA",
+                BillingZip: "90754",
+                ShippingFirstName: "Gene",
+                ShippingLastName: "Parmesan",
+                ShippingLine1: "141 Tupelo Dr.",
+                ShippingLine2: "Unit 605",
+                ShippingCity: "Santa Monica",
+                ShippingState: "CA",
+                ShippingZip: "91578",
+                ShippingCountry: "US",
+                SH: 10,
+                ShippingMethodName: "UPS Ground",
+                Microsite: "31",
+                CheckoutTypeId: "4",
+                PaymentMethodId: "12",
+                SameDayShipping: "3",
+                Items: [
+                    {
+                        ItemId: "39707",
+                        Quantity: 1,
+                        Rate: 138,
+                        Amount: 138,
+                    }
+                ]
+            }
+
+            // Mark the item as inactive
+            websiteOrderImpoterSpecControllerUrl += "&functionType=inactivateItem";
+            websiteOrderImpoterSpecControllerUrl += "&itemId="+this.orderWithInactiveItem.Items[0].ItemId;
+            this.controllerResponse = httpRequest.get(websiteOrderImpoterSpecControllerUrl);
+
+            // Import the order
+            this.restletResponse = httpRequest.post({
+                url: websiteOrderImporterRESTletUrl,
+                body: this.orderWithInactiveItem,
+                headers: headers
+            });
+            this.salesOrderRecordId = JSON.parse(this.restletResponse.body).salesOrderRecordId;
+
+            // Send to the controller to get the field values and store the response
+            websiteOrderImpoterSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1779&deploy=1&compid=634494_SB1&h=e2c8c227c3eb3b838b7a";
+            websiteOrderImpoterSpecControllerUrl += "&functionType=create";
+            websiteOrderImpoterSpecControllerUrl += "&salesOrderRecordId="+this.salesOrderRecordId;
+            this.controllerResponse = httpRequest.get(websiteOrderImpoterSpecControllerUrl);
+        });
+
+        test("should create a new sales order record and return the sales order record id", () => {
+            expect(this.salesOrderRecordId).not.toBeNull();
+        });
+
+        test("order should include the inactive item", () => {
+            expect(this.controllerResponse.Items.length).toBe(this.orderWithInactiveItem.Items.length);
+
+            this.orderWithInactiveItem.Items.forEach(element => {
+                var lineItemId = element.ItemId;
+                
+                this.controllerResponse.Items.forEach(netsuiteResponse => {
+                    if(netsuiteResponse.itemId == lineItemId){
+                        expect(netsuiteResponse.quantity).toBe(element.Quantity);
+                        expect(netsuiteResponse.amount).toBe(element.Amount);
+                        expect(netsuiteResponse.rate).toBe(element.Rate);
+                    }
+                });
+            });
+        });
+
+        // Reset the Suitelet url to its original form
+        afterAll(() => {
+            websiteOrderImpoterSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1779&deploy=1&compid=634494_SB1&h=e2c8c227c3eb3b838b7a";
+        });
+    });
+
+
     // describe("Throw exception if required field is missing", () => {
     //     beforeAll(() => {
     //         this.orderWithMissingFields = {

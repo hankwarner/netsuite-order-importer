@@ -6,10 +6,11 @@
 define(['N/record', 'S/helpers'],
 
 function(record, helper) {
+    var functionType;
 
     function onRequest(context) {
     	try{
-            var functionType = context.request.parameters.functionType;
+            functionType = context.request.parameters.functionType;
             
             if(functionType == "createEstimate"){
                 var sameDayShipping = context.request.parameters.sameDayShipping;
@@ -20,6 +21,12 @@ function(record, helper) {
                 log.audit("salesOrderRecordId", salesOrderRecordId);
 
                 var response = getSalesOrderRecordValues(salesOrderRecordId);
+
+            } else if(functionType == "inactivateItem"){
+                var itemId = context.request.parameters.itemId;
+                inactivateItem(itemId);
+
+                var response = "Item " + itemId + " has been marked as inactive."
             }
             
         } catch(err) {            
@@ -28,14 +35,14 @@ function(record, helper) {
                 error: err.message
             }
 			
-        } finally {
-        	log.audit("response", response);
-            response = JSON.stringify(response);
-            
-        	context.response.write({
-				output: response
-			});
-		}
+        }
+
+        log.audit("response", response);
+        response = JSON.stringify(response);
+        
+        context.response.write({
+            output: response
+        });
     }
 
     return {
@@ -253,5 +260,17 @@ function(record, helper) {
         }
 
         return lineItemValues;
+    }
+
+
+    function inactivateItem(itemId) {
+        record.submitFields({
+            type: record.Type.INVENTORY_ITEM,
+            id: itemId,
+            values: {
+                isinactive: true
+            }
+        });
+        log.audit("Item has been activated", "Item Id " + itemId);
     }
 });
