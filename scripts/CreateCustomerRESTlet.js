@@ -165,7 +165,7 @@ function(record, search, teamsLog) {
 		try{
 			// Full name:
 			requestBody.BillingName = requestBody.BillingFirstName + " " + requestBody.BillingLastName;
-			
+
 			var propertiesAndFieldIds = [
                 // property, fieldId
 				["Email", "email"],
@@ -303,8 +303,9 @@ function(record, search, teamsLog) {
 
 	function checkRequiredFields(requestBody, requiredFields){
         for(var i=0; i < requiredFields.length; i++){
-            var requiredField = requiredFields[i];
-            if(!requestBody.hasOwnProperty(requiredField) || !requestBody[requiredField] || requestBody[requiredField].length == 0){
+			var requiredField = requiredFields[i];
+			
+            if(typeof requestBody[requiredField] != "boolean" && (!requestBody.hasOwnProperty(requiredField) || !requestBody[requiredField] || requestBody[requiredField].length == 0)){
                 throw new Error(requiredField + " is required");
             }
         }
@@ -316,14 +317,14 @@ function(record, search, teamsLog) {
             var property = propertiesAndFieldIds[i][0];
             var fieldId = propertiesAndFieldIds[i][1];
 
-            if(requestObj.hasOwnProperty(property) && requestObj[property]){
+            if((requestObj.hasOwnProperty(property) && requestObj[property]) || typeof requestObj[property] == "boolean"){
                 var value = requestObj[property];
-                
+
             } else {
                 // Sets the default value if one is not provided in the request
                 var value = getDefaultValue(property);
             }
-            
+
             customerRecord.setValue({ fieldId: fieldId, value: value });
         }
 

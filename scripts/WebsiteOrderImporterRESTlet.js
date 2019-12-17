@@ -3,11 +3,13 @@
  * @NScriptType Restlet
  * @NModuleScope SameAccount
  */
-define(['N/record', 'N/search', 'S/teamslog.js', 'S/helpers.js'],
+define(['N/record', 'N/search', 'S/teamslog.js', 'S/helpers.js', 'N/email'],
 
-function(record, search, teamsLog, helper) {
+function(record, search, teamsLog, helper, email) {
 	const teamsUrl = "https://outlook.office.com/webhook/ccaff0e4-631a-4421-b57a-c899e744d60f@3c2f8435-994c-4552-8fe8-2aec2d0822e4/IncomingWebhook/9627607123264385b536d2c1ff1dbd4b/f69cfaae-e768-453b-8323-13e5bcff563f";
+    const avatax = "1990053";
     var hasRelatedEstimate;
+    var siteOrderNumber;
     
     function doPost(requestBody) {
         try{
@@ -29,12 +31,14 @@ function(record, search, teamsLog, helper) {
             ];
             checkRequiredFields(requestBody, requiredFields);
             
+            siteOrderNumber = requestBody.SiteOrderNumber;
+
             // Check if there is an existing Sales Order with the same Site Order Number ('PO #' field on the Sales Order)
-            var findDuplicateOrdersResults = findDuplicateOrders(requestBody.SiteOrderNumber, requestBody.Department);
+            var findDuplicateOrdersResults = findDuplicateOrders(siteOrderNumber, requestBody.Department);
             var isDuplicate = findDuplicateOrdersResults[0];
 
             if(isDuplicate){
-                log.audit("Duplicate order", requestBody.SiteOrderNumber);
+                log.audit("Duplicate order", siteOrderNumber);
                 var salesOrderRecordId = findDuplicateOrdersResults[1];
             
             } else {
@@ -64,10 +68,9 @@ function(record, search, teamsLog, helper) {
         	var response = {
             	error: err.message
             }
-
-        } finally {
-            return response;
         }
+
+        return response;
     }
 
     return {
@@ -237,6 +240,8 @@ function(record, search, teamsLog, helper) {
                 ["Note", "memo"],
                 ["Microsite", "custbody242"],
                 ["IPAddress", "custbody267"],
+                ["Taxable", "taxable"],
+				["TaxVendor", "taxitem"],
                 ["ShippingMethodName", "shipmethod"]
             ];
             
@@ -251,8 +256,6 @@ function(record, search, teamsLog, helper) {
 
             addItems(salesOrderRecord, items);
 
-            setTaxableCheckbox(salesOrderRecord, requestBody);
-
             var salesOrderRecordId = salesOrderRecord.save();
             
             return salesOrderRecordId;
@@ -261,19 +264,6 @@ function(record, search, teamsLog, helper) {
             log.error("Error in setSalesOrderValues", err);
             throw err;
         }
-    }
-
-
-    function setTaxableCheckbox(requestBody){
-        /* Default taxable to true for all website orders. For Nest Pro orders,
-        *  use the value from the customer record (because some are tax-exempt).
-        *  NetSuite will default to the value on the customer record if not set in the script.
-        */
-        if(requestBody.hasOwnProperty("Microsite") && requestBody.Microsite != 31){
-            salesOrderRecord.setValue({ fieldId: "istaxable", value: true });
-        }
-
-        return;
     }
 
 
@@ -286,9 +276,13 @@ function(record, search, teamsLog, helper) {
             }
             
             var itemId = getItemId(lineItem);
-            var customPriceLevel = "-1";
-            var sublistId = "item";
 
+            // If the item is marked inactive, we will not be able to add it to the order
+            if(isItemInactive(itemId)){
+                activateItem(itemId);
+            }
+
+            var customPriceLevel = "-1";
             var itemValues = [
                 // fieldId, value
                 ["item", itemId],
@@ -306,6 +300,7 @@ function(record, search, teamsLog, helper) {
             
             addOptionalItemFields(lineItem, optionalItemFields, itemValues);
             
+            var sublistId = "item";
             setSublistValues(salesOrderRecord, sublistId, itemValues);
         }
         return;
@@ -393,6 +388,51 @@ function(record, search, teamsLog, helper) {
 		
 		return itemId;
 	}
+
+
+    function isItemInactive(itemId) {
+        var itemLookup = search.lookupFields({
+            type: search.Type.INVENTORY_ITEM,
+            id: itemId,
+            columns: "isinactive"
+        });
+
+        return itemLookup.isinactive;
+    }
+
+
+    function activateItem(itemId) {
+        try {
+            record.submitFields({
+                type: record.Type.INVENTORY_ITEM,
+                id: itemId,
+                values: {
+                    isinactive: false
+                }
+            });
+            log.audit("Item has been activated", "Item Id " + itemId);
+
+            // Send email to Ops to let them know
+            email.send({
+                author: 16050078,
+                recipients: 'clinton.urbin@hmwallace.com',
+                bcc: ['h.warner@supply.com'],
+                subject: 'Item Id '+itemId+' Activated in NetSuite',
+                replyTo: 'SuiteSquad@hmwallace.com',
+                body: 'Item Id '+itemId+' has been changed from inactive to active in NetSuite '+
+                      'because a Supply.com order has been placed with it. PO # '+ siteOrderNumber
+            });
+
+        } catch(err) {
+            log.error("Unable to activate item id: " + itemId, err);
+            var message = {
+                from: "Error activateItem",
+                message: err.message,
+                color: "yellow"
+            }
+            teamsLog.log(message, teamsUrl);
+        }
+    }
 
 
     function checkPropertyAndSetValues(salesOrderRecord, requestObj, propertiesAndFieldIds){
@@ -488,6 +528,12 @@ function(record, search, teamsLog, helper) {
             case "ShippingCountry":
                 defaultValue = "US";
                 break;
+            case "Taxable":
+				defaultValue = true;
+				break;
+			case "TaxVendor":
+				defaultValue = avatax;
+				break;
             default:
                 defaultValue = "";
                 break;
