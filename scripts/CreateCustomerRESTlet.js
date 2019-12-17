@@ -115,7 +115,7 @@ function(record, search, teamsLog) {
 			
 			searchFilters = 
 			[
-				["custentity_ss_nestproid","equalto", nestProId]
+				["custentity_ss_nestproid","is", nestProId]
 			];
 
 		} else {
