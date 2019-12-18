@@ -172,6 +172,7 @@ function(record, helper) {
                 BillingState: billingAddressValues.BillingState,
                 BillingZip: billingAddressValues.BillingZip,
                 ShippingAddressee: shippingAddressValues.ShippingAddressee,
+                ShippingAttention: shippingAddressValues.ShippingAttention,
                 ShippingLine1: shippingAddressValues.ShippingLine1,
                 ShippingLine2: shippingAddressValues.ShippingLine2,
                 ShippingCity: shippingAddressValues.ShippingCity,
@@ -218,6 +219,7 @@ function(record, helper) {
         var fieldIdsArray = 
         [
             ["addressee", "ShippingAddressee"],
+            ["attention", "ShippingAttention"],
             ["addr1", "ShippingLine1"],
             ["addr2", "ShippingLine2"],
             ["city", "ShippingCity"],
