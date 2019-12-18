@@ -34,11 +34,11 @@ function(record, https, helper) {
         } finally {
             // Delete the item record if the request is from the 'CreateItemSuiteletSpec'
         	if(response.CustomerRecordId && functionType == "create"){
-            	record.delete({
-                    type: record.Type.CUSTOMER,
-                    id: response.CustomerRecordId
-                });
-                log.audit("CustomerRecord deleted", response.customerId);
+            	// record.delete({
+                //     type: record.Type.CUSTOMER,
+                //     id: response.CustomerRecordId
+                // });
+                // log.audit("CustomerRecord deleted", response.customerId);
             }
         	log.audit("response", response);
             response = JSON.stringify(response);
@@ -83,6 +83,9 @@ function(record, https, helper) {
                 ["taxable", "Taxable"],
                 ["taxitem", "TaxItem"],
                 ["isperson", "IsPerson"],
+                ["custentity_ss_sourcecomplete", "SourceComplete"],
+                ["custentity_ss_sourcekitscomplete", "SourceKitsComplete"],
+                ["custentity_ss_fulfillcomplete", "FulfillComplete"],
 
                 // General info
                 ["email", "Email"],
@@ -138,7 +141,10 @@ function(record, https, helper) {
                 BillingLine2: customerRecordValues.BillingLine2,
                 BillingCity: customerRecordValues.BillingCity,
                 BillingState: customerRecordValues.BillingState,
-                BillingZip: customerRecordValues.BillingZip
+                BillingZip: customerRecordValues.BillingZip,
+                SourceComplete: customerRecordValues.SourceComplete,
+                SourceKitsComplete: customerRecordValues.SourceKitsComplete,
+                FulfillComplete: customerRecordValues.FulfillComplete,
             }
 
             // Check for shipping address and get values
