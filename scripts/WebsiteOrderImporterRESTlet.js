@@ -7,6 +7,7 @@ define(['N/record', 'N/search', 'S/teamslog.js', 'S/helpers.js'],
 
 function(record, search, teamsLog, helper) {
 	const teamsUrl = "https://outlook.office.com/webhook/ccaff0e4-631a-4421-b57a-c899e744d60f@3c2f8435-994c-4552-8fe8-2aec2d0822e4/IncomingWebhook/9627607123264385b536d2c1ff1dbd4b/f69cfaae-e768-453b-8323-13e5bcff563f";
+    const avatax = "1990053";
     var hasRelatedEstimate;
     
     function doPost(requestBody) {
@@ -237,6 +238,8 @@ function(record, search, teamsLog, helper) {
                 ["Note", "memo"],
                 ["Microsite", "custbody242"],
                 ["IPAddress", "custbody267"],
+                ["Taxable", "taxable"],
+				["TaxVendor", "taxitem"],
                 ["ShippingMethodName", "shipmethod"]
             ];
             
@@ -251,8 +254,6 @@ function(record, search, teamsLog, helper) {
 
             addItems(salesOrderRecord, items);
 
-            setTaxableCheckbox(salesOrderRecord, requestBody);
-
             var salesOrderRecordId = salesOrderRecord.save();
             
             return salesOrderRecordId;
@@ -261,19 +262,6 @@ function(record, search, teamsLog, helper) {
             log.error("Error in setSalesOrderValues", err);
             throw err;
         }
-    }
-
-
-    function setTaxableCheckbox(requestBody){
-        /* Default taxable to true for all website orders. For Nest Pro orders,
-        *  use the value from the customer record (because some are tax-exempt).
-        *  NetSuite will default to the value on the customer record if not set in the script.
-        */
-        if(requestBody.hasOwnProperty("Microsite") && requestBody.Microsite != 31){
-            salesOrderRecord.setValue({ fieldId: "istaxable", value: true });
-        }
-
-        return;
     }
 
 
@@ -353,6 +341,7 @@ function(record, search, teamsLog, helper) {
             var shippingValues = [
                 // property, fieldId
                 ["ShippingAddressee", "addressee"],
+              	["ShippingCompany", "attention"],
                 ["ShippingLine1", "addr1"],
                 ["ShippingLine2", "addr2"],
                 ["ShippingCity", "city"],
@@ -488,6 +477,12 @@ function(record, search, teamsLog, helper) {
             case "ShippingCountry":
                 defaultValue = "US";
                 break;
+            case "Taxable":
+				defaultValue = true;
+				break;
+			case "TaxVendor":
+				defaultValue = avatax;
+				break;
             default:
                 defaultValue = "";
                 break;
