@@ -190,7 +190,10 @@ describe("Create Customer", () => {
             ShippingZip: "30316",
             Microsite: "27",
             UserTypeId: "4",
-            SameDayShipping: "3"
+            SameDayShipping: "3",
+            SourceComplete: true,
+            FulfillComplete: true,
+            SourceKitsComplete: true,
         }
 
         test("should use the non-Google child account for non-Nest Pro orders", () => {
@@ -220,7 +223,7 @@ describe("Create Customer", () => {
         });
 
         test("should create a new Nest Pro customer as a child account of Google", () => {
-            this.customer.NestProId = 7777777;
+            this.customer.NestProId = "7777777";
             
             this.request = JSON.stringify(this.customer);
             createCustomerSpecControllerUrl += "&request="+this.request;
@@ -255,6 +258,9 @@ describe("Create Customer", () => {
             expect(this.newNestProCustomerResponse.ShippingZip).toBe(this.customer.ShippingZip);
             expect(this.newNestProCustomerResponse.NestProId).toBe(this.customer.NestProId);
             expect(this.newNestProCustomerResponse.ParentAccountId).toBe(this.customer.ParentAccountId);
+            expect(this.newNestProCustomerResponse.SourceComplete).toBe(this.customer.SourceComplete);
+            //expect(this.newNestProCustomerResponse.SourceKitsComplete).toBe(this.customer.SourceKitsComplete);
+            expect(this.newNestProCustomerResponse.FulfillComplete).toBe(this.customer.FulfillComplete);
 
             createCustomerSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1786&deploy=1&compid=634494_SB1&h=4f268df624984b2c93a5";
         });

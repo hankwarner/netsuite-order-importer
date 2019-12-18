@@ -32,8 +32,8 @@ function(record, search, teamsLog) {
 
             // Check if customer exists
 			var getCustomerIdResponse = getCustomerId(requestBody);
-			
-            if(getCustomerIdResponse){
+
+			if(getCustomerIdResponse){
 				var customerId = getCustomerIdResponse[0];
 				var sameDayShipping = getCustomerIdResponse[1];
 				
@@ -78,7 +78,7 @@ function(record, search, teamsLog) {
 	
     function getCustomerId(requestBody){
 		var searchFilters = createSearchFilters(requestBody);
-		
+
 		// Match on email
 		var customerSearch = search.create({
 			type: "customer",
@@ -181,14 +181,49 @@ function(record, search, teamsLog) {
 				["ParentAccountId", "parent"],
 				["Taxable", "taxable"],
 				["TaxVendor", "taxitem"],
-				["IsPerson", "isperson"]
+				["IsPerson", "isperson"],
 			];
 			checkPropertyAndSetValues(customerRecord, requestBody, propertiesAndFieldIds);
+
+			// Default 'Source Complete' and 'Fulfill Complete' for Google child accounts
+			var googleParentId = 18054032; // production
+			//var googleParentId = 17496702; // sandbox
+			if(requestBody.hasOwnProperty("ParentAccountId") && requestBody.ParentAccountId == googleParentId){
+				setSourcingFields(customerRecord, requestBody);
+			}
 
 			return;
 
 		} catch(err){
 			log.error("Error in setCustomerFields ", err);
+			var message = {
+				from: "Error in CreateCustomerRESTlet setCustomerFields",
+				message: err.message,
+				color: "yellow"
+			}
+        	teamsLog.log(message, teamsUrl);
+		}
+	}
+
+
+	function setSourcingFields(customerRecord, requestBody) {
+		try {
+			var propertiesAndFieldIds = [
+				// property, fieldId
+				["SourceComplete", "custentity_ss_sourcecomplete"],
+				["SourceKitsComplete", "custentity_ss_sourcekitscomplete"],
+				["FulfillComplete", "custentity_ss_fulfillcomplete"],
+			];
+			checkPropertyAndSetValues(customerRecord, requestBody, propertiesAndFieldIds);
+
+		} catch(err) {
+			log.error("Error in setSourcingFields ", err);
+			var message = {
+				from: "Error in CreateCustomerRESTlet setSourcingFields",
+				message: err.message,
+				color: "yellow"
+			}
+        	teamsLog.log(message, teamsUrl);
 		}
 	}
 
@@ -315,7 +350,7 @@ function(record, search, teamsLog) {
 	function checkPropertyAndSetValues(customerRecord, requestObj, propertiesAndFieldIds){
         for(var i=0; i < propertiesAndFieldIds.length; i++){
             var property = propertiesAndFieldIds[i][0];
-            var fieldId = propertiesAndFieldIds[i][1];
+			var fieldId = propertiesAndFieldIds[i][1];
 
             if((requestObj.hasOwnProperty(property) && requestObj[property]) || typeof requestObj[property] == "boolean"){
                 var value = requestObj[property];
@@ -325,7 +360,7 @@ function(record, search, teamsLog) {
                 var value = getDefaultValue(property);
             }
 
-            customerRecord.setValue({ fieldId: fieldId, value: value });
+			customerRecord.setValue({ fieldId: fieldId, value: value });
         }
 
         return;
