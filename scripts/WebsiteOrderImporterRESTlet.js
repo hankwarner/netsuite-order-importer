@@ -348,7 +348,7 @@ function(record, search, teamsLog, helper, email) {
             var shippingValues = [
                 // property, fieldId
                 ["ShippingAddressee", "addressee"],
-                ["ShippingCompany", "attention"],
+              	["ShippingCompany", "attention"],
                 ["ShippingLine1", "addr1"],
                 ["ShippingLine2", "addr2"],
                 ["ShippingCity", "city"],
