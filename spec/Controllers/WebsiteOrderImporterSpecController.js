@@ -22,11 +22,11 @@ function(record, helper) {
 
                 var response = getSalesOrderRecordValues(salesOrderRecordId);
 
-            } else if(functionType == "inactivateItem"){
-                var itemId = context.request.parameters.itemId;
-                inactivateItem(itemId);
+            } else if(functionType == "inactivateItems"){
+                var items = JSON.parse(context.request.parameters.items);
+                inactivateItems(items);
 
-                var response = "Item " + itemId + " has been marked as inactive."
+                var response = "Success";
             }
             
         } catch(err) {            
@@ -59,7 +59,6 @@ function(record, helper) {
         });
 
         // Set Same-Day Shipping
-        log.debug("sameDayShipping", sameDayShipping);
         estimateRecord.setValue({
             fieldId: "custbody7",
             value: sameDayShipping
@@ -265,14 +264,23 @@ function(record, helper) {
     }
 
 
-    function inactivateItem(itemId) {
-        record.submitFields({
-            type: record.Type.INVENTORY_ITEM,
-            id: itemId,
-            values: {
-                isinactive: true
+    function inactivateItems(items) {
+        try{
+            for(var i=0; i < items.length; i++) {
+                var itemRecordType = items[i].isKit ? record.Type.KIT_ITEM : record.Type.INVENTORY_ITEM;
+
+                record.submitFields({
+                    type: itemRecordType,
+                    id: items[i].ItemId,
+                    values: {
+                        isinactive: true
+                    }
+                });
+                log.audit("Item has been activated", "Item Id " + items[i].ItemId);
             }
-        });
-        log.audit("Item has been activated", "Item Id " + itemId);
+
+        } catch(err) {
+            log.error("Error", err);
+        }
     }
 });

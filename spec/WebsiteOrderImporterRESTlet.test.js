@@ -19,6 +19,7 @@ describe("Import Orders From Supply.com", () => {
                 BillingFirstName: "Barry",
                 BillingLastName: "Block",
                 Company: "Gene Cousineau Acting Studio",
+                ShippingCompany: "Gene Cousineau Acting Studio",
                 JobName: "Gene Cousineau's Acting Studio",
                 Department: "29",
                 BillingLine1: "311 Amber Lane",
@@ -158,247 +159,255 @@ describe("Import Orders From Supply.com", () => {
         });
     });
 
-    // describe("Create a new Sales Order with a Related Estimate", () => {
-    //     beforeAll(() => {
-    //         this.orderWithRelatedEstimate = {
-    //             CustomerId: "17494445",
-    //             SiteOrderNumber: orderNumberGenerator.generateOrderNumber(),
-    //             Email: "BarryBlock@GeneCousineauActingStudio.com",
-    //             BillingFirstName: "Barry",
-    //             BillingLastName: "Block",
-    //             JobName: "Gene Cousineau's Acting Studio",
-    //             Department: "29",
-    //             BillingLine1: "311 Amber Lane",
-    //             BillingLine2: "Apt B",
-    //             BillingCity: "Killen",
-    //             BillingState: "TX",
-    //             BillingZip: "75225",
-    //             ShippingFirstName: "Gene",
-    //             ShippingLastName: "Parmesan",
-    //             ShippingLine1: "141 Tupelo Dr.",
-    //             ShippingLine2: "",
-    //             ShippingCity: "Austin",
-    //             ShippingState: "TX",
-    //             ShippingZip: "75225",
-    //             ShippingCountry: "US",
-    //             Note: "This is a test note",
-    //             SH: 10,
-    //             ShippingMethodName: "UPS Next Day Air Early A.M.",
-    //             DiscountNames: "Super Savings",
-    //             IPAddress: "99.203.23.226",
-    //             SignifydID: "1129543835",
-    //             AltOrderNumber: "61954029542",
-    //             Microsite: "27",
-    //             CheckoutTypeId: "4",
-    //             PaymentMethodId: "1",
-    //             SameDayShipping: "4", // This should be different than what is on the customer record
-    //             Items: [
-    //                 {
-    //                     ItemId: "10268",
-    //                     Quantity: 2,
-    //                     Rate: 120.00,
-    //                     Amount: 240.00,
-    //                     PersonalItem: false
-    //                 },
-    //                 {
-    //                     ItemId: "1808976",
-    //                     Quantity: 3,
-    //                     Rate: 1506.45,
-    //                     Amount: 4519.35,
-    //                     PersonalItem: true
-    //                 }
-    //             ]
-    //         }
+    describe("Create a new Sales Order with a Related Estimate", () => {
+        beforeAll(() => {
+            this.orderWithRelatedEstimate = {
+                CustomerId: "17494445",
+                SiteOrderNumber: orderNumberGenerator.generateOrderNumber(),
+                Email: "BarryBlock@GeneCousineauActingStudio.com",
+                BillingFirstName: "Barry",
+                BillingLastName: "Block",
+                JobName: "Gene Cousineau's Acting Studio",
+                Department: "29",
+                BillingLine1: "311 Amber Lane",
+                BillingLine2: "Apt B",
+                BillingCity: "Killen",
+                BillingState: "TX",
+                BillingZip: "75225",
+                ShippingFirstName: "Gene",
+                ShippingLastName: "Parmesan",
+                ShippingLine1: "141 Tupelo Dr.",
+                ShippingLine2: "",
+                ShippingCity: "Austin",
+                ShippingState: "TX",
+                ShippingZip: "75225",
+                ShippingCountry: "US",
+                Note: "This is a test note",
+                SH: 10,
+                ShippingMethodName: "UPS Next Day Air Early A.M.",
+                DiscountNames: "Super Savings",
+                IPAddress: "99.203.23.226",
+                SignifydID: "1129543835",
+                AltOrderNumber: "61954029542",
+                Microsite: "27",
+                CheckoutTypeId: "4",
+                PaymentMethodId: "1",
+                SameDayShipping: "4", // This should be different than what is on the customer record
+                Items: [
+                    {
+                        ItemId: "10268",
+                        Quantity: 2,
+                        Rate: 120.00,
+                        Amount: 240.00,
+                        PersonalItem: false
+                    },
+                    {
+                        ItemId: "1808976",
+                        Quantity: 3,
+                        Rate: 1506.45,
+                        Amount: 4519.35,
+                        PersonalItem: true
+                    }
+                ]
+            }
             
-    //         // Create an Estimate and store the response as the RelatedEstimate
-    //         websiteOrderImpoterSpecControllerUrl += "&functionType=createEstimate";
-    //         websiteOrderImpoterSpecControllerUrl += "&sameDayShipping="+this.orderWithRelatedEstimate.SameDayShipping;
-    //         this.orderWithRelatedEstimate.RelatedEstimate = httpRequest.get(websiteOrderImpoterSpecControllerUrl);;
+            // Create an Estimate and store the response as the RelatedEstimate
+            websiteOrderImpoterSpecControllerUrl += "&functionType=createEstimate";
+            websiteOrderImpoterSpecControllerUrl += "&sameDayShipping="+this.orderWithRelatedEstimate.SameDayShipping;
+            this.orderWithRelatedEstimate.RelatedEstimate = httpRequest.get(websiteOrderImpoterSpecControllerUrl);;
             
-    //         // Remove the function type from the url
-    //         websiteOrderImpoterSpecControllerUrl = websiteOrderImpoterSpecControllerUrl.replace("&functionType=createEstimate", "");
-    //         // Change the Same Day Shipping value to ensure that the Restlet sets it to the value that's on the related estimate
-    //         this.orderWithRelatedEstimate.SameDayShipping = "1";
+            // Remove the function type from the url
+            websiteOrderImpoterSpecControllerUrl = websiteOrderImpoterSpecControllerUrl.replace("&functionType=createEstimate", "");
+            // Change the Same Day Shipping value to ensure that the Restlet sets it to the value that's on the related estimate
+            this.orderWithRelatedEstimate.SameDayShipping = "1";
 
-    //         // Create the Sales Order
-    //         this.request = JSON.stringify(this.orderWithRelatedEstimate);
+            // Create the Sales Order
+            this.request = JSON.stringify(this.orderWithRelatedEstimate);
             
-    //         this.restletResponse = httpRequest.post({
-    //             url: websiteOrderImporterRESTletUrl,
-    //             body: this.orderWithRelatedEstimate,
-    //             headers: headers
-    //         });
+            this.restletResponse = httpRequest.post({
+                url: websiteOrderImporterRESTletUrl,
+                body: this.orderWithRelatedEstimate,
+                headers: headers
+            });
 
-    //         // Reset the Same Day Shipping value back to its original state for testing purposes
-    //         this.orderWithRelatedEstimate.SameDayShipping = "4";
+            // Reset the Same Day Shipping value back to its original state for testing purposes
+            this.orderWithRelatedEstimate.SameDayShipping = "4";
 
-    //         // Store the sales order record id
-    //         this.salesOrderRecordId = JSON.parse(this.restletResponse.body).salesOrderRecordId;
-    //         websiteOrderImpoterSpecControllerUrl += "&functionType=create";
-    //         websiteOrderImpoterSpecControllerUrl += "&salesOrderRecordId="+this.salesOrderRecordId;
+            // Store the sales order record id
+            this.salesOrderRecordId = JSON.parse(this.restletResponse.body).salesOrderRecordId;
+            websiteOrderImpoterSpecControllerUrl += "&functionType=create";
+            websiteOrderImpoterSpecControllerUrl += "&salesOrderRecordId="+this.salesOrderRecordId;
         
-    //         // Send to the controller to get the field values and store the response
-    //         this.controllerResponse = httpRequest.get(websiteOrderImpoterSpecControllerUrl);
-    //     });
+            // Send to the controller to get the field values and store the response
+            this.controllerResponse = httpRequest.get(websiteOrderImpoterSpecControllerUrl);
+        });
 
-    //     test("should transform a related estimate into a sales order", () => {
-    //         expect(this.salesOrderRecordId).not.toBeNull();
-    //         expect(this.controllerResponse.RelatedEstimate).toBe(this.orderWithRelatedEstimate.RelatedEstimate);
-    //     });
+        test("should transform a related estimate into a sales order", () => {
+            expect(this.salesOrderRecordId).not.toBeNull();
+            expect(this.controllerResponse.RelatedEstimate).toBe(this.orderWithRelatedEstimate.RelatedEstimate);
+        });
 
         
-    //     test("should set the payment infomation fields", () => {
-    //         expect(this.controllerResponse.PaymentMethodId).toBe(this.orderWithRelatedEstimate.PaymentMethodId);
-    //         expect(this.controllerResponse.SH).toBe(this.orderWithRelatedEstimate.SH);
-    //         expect(this.controllerResponse.SignifydID).toBe(this.orderWithRelatedEstimate.SignifydID);
-    //         expect(this.controllerResponse.DiscountNames).toBe(this.orderWithRelatedEstimate.DiscountNames);
-    //         expect(this.controllerResponse.CheckoutTypeId).toBe(this.orderWithRelatedEstimate.CheckoutTypeId);
-    //     });
+        test("should set the payment infomation fields", () => {
+            expect(this.controllerResponse.PaymentMethodId).toBe(this.orderWithRelatedEstimate.PaymentMethodId);
+            expect(this.controllerResponse.SH).toBe(this.orderWithRelatedEstimate.SH);
+            expect(this.controllerResponse.SignifydID).toBe(this.orderWithRelatedEstimate.SignifydID);
+            expect(this.controllerResponse.DiscountNames).toBe(this.orderWithRelatedEstimate.DiscountNames);
+            expect(this.controllerResponse.CheckoutTypeId).toBe(this.orderWithRelatedEstimate.CheckoutTypeId);
+        });
 
-    //     test("should set the general infomation fields", () => {
-    //         expect(this.controllerResponse.BrontoId).toBe(this.orderWithRelatedEstimate.SiteOrderNumber);
-    //         expect(this.controllerResponse.Department).toBe(this.orderWithRelatedEstimate.Department);
-    //         expect(this.controllerResponse.Note).toBe(this.orderWithRelatedEstimate.Note);
-    //         expect(this.controllerResponse.BrontoId).toBe(this.orderWithRelatedEstimate.SiteOrderNumber);
-    //     });
+        test("should set the general infomation fields", () => {
+            expect(this.controllerResponse.BrontoId).toBe(this.orderWithRelatedEstimate.SiteOrderNumber);
+            expect(this.controllerResponse.Department).toBe(this.orderWithRelatedEstimate.Department);
+            expect(this.controllerResponse.Note).toBe(this.orderWithRelatedEstimate.Note);
+            expect(this.controllerResponse.BrontoId).toBe(this.orderWithRelatedEstimate.SiteOrderNumber);
+        });
 
-    //     test("should set the order infomation fields", () => {
-    //         expect(this.controllerResponse.SiteOrderNumber).toBe(this.orderWithRelatedEstimate.SiteOrderNumber);
-    //         //expect(this.controllerResponse.SameDayShipping).toBe(this.orderWithRelatedEstimate.SameDayShipping);
-    //         expect(this.controllerResponse.JobName).toBe(this.orderWithRelatedEstimate.JobName);
-    //         expect(this.controllerResponse.ShippingMethodName).toBe("4234");
-    //     });
+        test("should set the order infomation fields", () => {
+            expect(this.controllerResponse.SiteOrderNumber).toBe(this.orderWithRelatedEstimate.SiteOrderNumber);
+            //expect(this.controllerResponse.SameDayShipping).toBe(this.orderWithRelatedEstimate.SameDayShipping);
+            expect(this.controllerResponse.JobName).toBe(this.orderWithRelatedEstimate.JobName);
+            expect(this.controllerResponse.ShippingMethodName).toBe("4234");
+        });
 
-    //     test("should set the website infomation fields", () => {
-    //         expect(this.controllerResponse.Microsite).toBe(this.orderWithRelatedEstimate.Microsite);
-    //         expect(this.controllerResponse.IPAddress).toBe(this.orderWithRelatedEstimate.IPAddress);
-    //     });
+        test("should set the website infomation fields", () => {
+            expect(this.controllerResponse.Microsite).toBe(this.orderWithRelatedEstimate.Microsite);
+            expect(this.controllerResponse.IPAddress).toBe(this.orderWithRelatedEstimate.IPAddress);
+        });
 
-    //     test("should set the billing address", () => {
-    //         expect(this.controllerResponse.BillingAddressee).toBe(this.orderWithRelatedEstimate.BillingFirstName.concat(" "+this.orderWithRelatedEstimate.BillingLastName));
-    //         expect(this.controllerResponse.BillingLine1).toBe(this.orderWithRelatedEstimate.BillingLine1);
-    //         expect(this.controllerResponse.BillingLine2).toBe(this.orderWithRelatedEstimate.BillingLine2);
-    //         expect(this.controllerResponse.BillingCity).toBe(this.orderWithRelatedEstimate.BillingCity);
-    //         expect(this.controllerResponse.BillingState).toBe(this.orderWithRelatedEstimate.BillingState);
-    //         expect(this.controllerResponse.BillingZip).toBe(this.orderWithRelatedEstimate.BillingZip);
-    //     });
+        test("should set the billing address", () => {
+            expect(this.controllerResponse.BillingAddressee).toBe(this.orderWithRelatedEstimate.BillingFirstName.concat(" "+this.orderWithRelatedEstimate.BillingLastName));
+            expect(this.controllerResponse.BillingLine1).toBe(this.orderWithRelatedEstimate.BillingLine1);
+            expect(this.controllerResponse.BillingLine2).toBe(this.orderWithRelatedEstimate.BillingLine2);
+            expect(this.controllerResponse.BillingCity).toBe(this.orderWithRelatedEstimate.BillingCity);
+            expect(this.controllerResponse.BillingState).toBe(this.orderWithRelatedEstimate.BillingState);
+            expect(this.controllerResponse.BillingZip).toBe(this.orderWithRelatedEstimate.BillingZip);
+        });
 
-    //     test("should set the shipping address", () => {
-    //         expect(this.controllerResponse.ShippingAddressee).toBe(this.orderWithRelatedEstimate.ShippingFirstName.concat(" "+this.orderWithRelatedEstimate.ShippingLastName));
-    //         expect(this.controllerResponse.ShippingLine1).toBe(this.orderWithRelatedEstimate.ShippingLine1);
-    //         expect(this.controllerResponse.ShippingLine2).toBe(this.orderWithRelatedEstimate.ShippingLine2);
-    //         expect(this.controllerResponse.ShippingCity).toBe(this.orderWithRelatedEstimate.ShippingCity);
-    //         expect(this.controllerResponse.ShippingState).toBe(this.orderWithRelatedEstimate.ShippingState);
-    //         expect(this.controllerResponse.ShippingZip).toBe(this.orderWithRelatedEstimate.ShippingZip);
-    //     });
+        test("should set the shipping address", () => {
+            expect(this.controllerResponse.ShippingAddressee).toBe(this.orderWithRelatedEstimate.ShippingFirstName.concat(" "+this.orderWithRelatedEstimate.ShippingLastName));
+            expect(this.controllerResponse.ShippingLine1).toBe(this.orderWithRelatedEstimate.ShippingLine1);
+            expect(this.controllerResponse.ShippingLine2).toBe(this.orderWithRelatedEstimate.ShippingLine2);
+            expect(this.controllerResponse.ShippingCity).toBe(this.orderWithRelatedEstimate.ShippingCity);
+            expect(this.controllerResponse.ShippingState).toBe(this.orderWithRelatedEstimate.ShippingState);
+            expect(this.controllerResponse.ShippingZip).toBe(this.orderWithRelatedEstimate.ShippingZip);
+        });
 
-    //     test("should set the item lines", () => {
-    //         expect(this.controllerResponse.Items.length).toBe(this.orderWithRelatedEstimate.Items.length);
+        test("should set the item lines", () => {
+            expect(this.controllerResponse.Items.length).toBe(this.orderWithRelatedEstimate.Items.length);
 
-    //         this.orderWithRelatedEstimate.Items.forEach(element => {
-    //             var lineItemId = element.ItemId;
+            this.orderWithRelatedEstimate.Items.forEach(element => {
+                var lineItemId = element.ItemId;
                 
-    //             this.controllerResponse.Items.forEach(netsuiteResponse => {
-    //                 if(netsuiteResponse.itemId == lineItemId){
-    //                     expect(netsuiteResponse.quantity).toBe(element.Quantity);
-    //                     expect(netsuiteResponse.amount).toBe(element.Amount);
-    //                     expect(netsuiteResponse.rate).toBe(element.Rate);
-    //                     expect(netsuiteResponse.personalItem).toBe(element.PersonalItem);
-    //                 }
-    //             });
-    //         });
-    //     });
+                this.controllerResponse.Items.forEach(netsuiteResponse => {
+                    if(netsuiteResponse.itemId == lineItemId){
+                        expect(netsuiteResponse.quantity).toBe(element.Quantity);
+                        expect(netsuiteResponse.amount).toBe(element.Amount);
+                        expect(netsuiteResponse.rate).toBe(element.Rate);
+                        expect(netsuiteResponse.personalItem).toBe(element.PersonalItem);
+                    }
+                });
+            });
+        });
 
-    //     // Reset the Suitelet url to its original form
-    //     afterAll(() => {
-    //         websiteOrderImpoterSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1779&deploy=1&compid=634494_SB1&h=e2c8c227c3eb3b838b7a";
-    //     });
-    // });
+        // Reset the Suitelet url to its original form
+        afterAll(() => {
+            websiteOrderImpoterSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1779&deploy=1&compid=634494_SB1&h=e2c8c227c3eb3b838b7a";
+        });
+    });
 
 
-    // describe("Import orders with inactive items", () => {
-    //     beforeAll(() => {
-    //         this.orderWithInactiveItem = {
-    //             CustomerId: "17494445",
-    //             SiteOrderNumber: orderNumberGenerator.generateOrderNumber(),
-    //             Email: "BarryBlock@GeneCousineauActingStudio.com",
-    //             BillingFirstName: "Barry",
-    //             BillingLastName: "Block",
-    //             Department: "29",
-    //             BillingLine1: "311 Amber Lane",
-    //             BillingLine2: "Apt B",
-    //             BillingCity: "Ventura",
-    //             BillingState: "CA",
-    //             BillingZip: "90754",
-    //             ShippingFirstName: "Gene",
-    //             ShippingLastName: "Parmesan",
-    //             ShippingLine1: "141 Tupelo Dr.",
-    //             ShippingLine2: "Unit 605",
-    //             ShippingCity: "Santa Monica",
-    //             ShippingState: "CA",
-    //             ShippingZip: "91578",
-    //             ShippingCountry: "US",
-    //             SH: 10,
-    //             ShippingMethodName: "UPS Ground",
-    //             Microsite: "31",
-    //             CheckoutTypeId: "4",
-    //             PaymentMethodId: "12",
-    //             SameDayShipping: "3",
-    //             Items: [
-    //                 {
-    //                     ItemId: "39707",
-    //                     Quantity: 1,
-    //                     Rate: 138,
-    //                     Amount: 138,
-    //                 }
-    //             ]
-    //         }
+    describe("Import orders with inactive items", () => {
+        beforeAll(() => {
+            this.orderWithInactiveItem = {
+                CustomerId: "17494445",
+                SiteOrderNumber: orderNumberGenerator.generateOrderNumber(),
+                Email: "BarryBlock@GeneCousineauActingStudio.com",
+                BillingFirstName: "Barry",
+                BillingLastName: "Block",
+                Department: "29",
+                BillingLine1: "311 Amber Lane",
+                BillingLine2: "Apt B",
+                BillingCity: "Ventura",
+                BillingState: "CA",
+                BillingZip: "90754",
+                ShippingFirstName: "Gene",
+                ShippingLastName: "Parmesan",
+                ShippingLine1: "141 Tupelo Dr.",
+                ShippingLine2: "Unit 605",
+                ShippingCity: "Santa Monica",
+                ShippingState: "CA",
+                ShippingZip: "91578",
+                ShippingCountry: "US",
+                SH: 10,
+                ShippingMethodName: "UPS Ground",
+                Microsite: "31",
+                CheckoutTypeId: "4",
+                PaymentMethodId: "12",
+                SameDayShipping: "3",
+                Items: [
+                    {
+                        ItemId: "39707",
+                        isKit: false,
+                        Quantity: 1,
+                        Rate: 138,
+                        Amount: 138,
+                    },
+                    {
+                        ItemId: "745894",
+                        isKit: true,
+                        Quantity: 1,
+                        Rate: 150,
+                        Amount: 150,
+                    }
+                ]
+            }
 
-    //         // Mark the item as inactive
-    //         websiteOrderImpoterSpecControllerUrl += "&functionType=inactivateItem";
-    //         websiteOrderImpoterSpecControllerUrl += "&itemId="+this.orderWithInactiveItem.Items[0].ItemId;
-    //         this.controllerResponse = httpRequest.get(websiteOrderImpoterSpecControllerUrl);
+            var itemsJson = JSON.stringify(this.orderWithInactiveItem.Items);
 
-    //         // Import the order
-    //         this.restletResponse = httpRequest.post({
-    //             url: websiteOrderImporterRESTletUrl,
-    //             body: this.orderWithInactiveItem,
-    //             headers: headers
-    //         });
-    //         this.salesOrderRecordId = JSON.parse(this.restletResponse.body).salesOrderRecordId;
+            // Mark the item as inactive
+            websiteOrderImpoterSpecControllerUrl += "&functionType=inactivateItems";
+            websiteOrderImpoterSpecControllerUrl += "&items="+itemsJson;
+            this.controllerResponse = httpRequest.get(websiteOrderImpoterSpecControllerUrl);
 
-    //         // Send to the controller to get the field values and store the response
-    //         websiteOrderImpoterSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1779&deploy=1&compid=634494_SB1&h=e2c8c227c3eb3b838b7a";
-    //         websiteOrderImpoterSpecControllerUrl += "&functionType=create";
-    //         websiteOrderImpoterSpecControllerUrl += "&salesOrderRecordId="+this.salesOrderRecordId;
-    //         this.controllerResponse = httpRequest.get(websiteOrderImpoterSpecControllerUrl);
-    //     });
+            // Import the order
+            this.restletResponse = httpRequest.post({
+                url: websiteOrderImporterRESTletUrl,
+                body: this.orderWithInactiveItem,
+                headers: headers
+            });
+            this.salesOrderRecordId = JSON.parse(this.restletResponse.body).salesOrderRecordId;
 
-    //     test("should create a new sales order record and return the sales order record id", () => {
-    //         expect(this.salesOrderRecordId).not.toBeNull();
-    //     });
+            // Send to the controller to get the field values and store the response
+            websiteOrderImpoterSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1779&deploy=1&compid=634494_SB1&h=e2c8c227c3eb3b838b7a";
+            websiteOrderImpoterSpecControllerUrl += "&functionType=create";
+            websiteOrderImpoterSpecControllerUrl += "&salesOrderRecordId="+this.salesOrderRecordId;
+            this.controllerResponse = httpRequest.get(websiteOrderImpoterSpecControllerUrl);
+        });
 
-    //     test("order should include the inactive item", () => {
-    //         expect(this.controllerResponse.Items.length).toBe(this.orderWithInactiveItem.Items.length);
+        test("should create a new sales order record and return the sales order record id", () => {
+            expect(this.salesOrderRecordId).not.toBeNull();
+        });
 
-    //         this.orderWithInactiveItem.Items.forEach(element => {
-    //             var lineItemId = element.ItemId;
+        test("order should include the inactive item", () => {
+            this.orderWithInactiveItem.Items.forEach(element => {
+                var lineItemId = element.ItemId;
                 
-    //             this.controllerResponse.Items.forEach(netsuiteResponse => {
-    //                 if(netsuiteResponse.itemId == lineItemId){
-    //                     expect(netsuiteResponse.quantity).toBe(element.Quantity);
-    //                     expect(netsuiteResponse.amount).toBe(element.Amount);
-    //                     expect(netsuiteResponse.rate).toBe(element.Rate);
-    //                 }
-    //             });
-    //         });
-    //     });
+                this.controllerResponse.Items.forEach(netsuiteResponse => {
+                    if(netsuiteResponse.itemId == lineItemId){
+                        expect(netsuiteResponse.quantity).toBe(element.Quantity);
+                        expect(netsuiteResponse.amount).toBe(element.Amount);
+                        expect(netsuiteResponse.rate).toBe(element.Rate);
+                    }
+                });
+            });
+        });
 
-    //     // Reset the Suitelet url to its original form
-    //     afterAll(() => {
-    //         websiteOrderImpoterSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1779&deploy=1&compid=634494_SB1&h=e2c8c227c3eb3b838b7a";
-    //     });
-    // });
+        // Reset the Suitelet url to its original form
+        afterAll(() => {
+            websiteOrderImpoterSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1779&deploy=1&compid=634494_SB1&h=e2c8c227c3eb3b838b7a";
+        });
+    });
 
 
     // describe("Throw exception if required field is missing", () => {
