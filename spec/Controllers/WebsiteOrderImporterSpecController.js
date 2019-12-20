@@ -6,10 +6,11 @@
 define(['N/record', 'S/helpers'],
 
 function(record, helper) {
+    var functionType;
 
     function onRequest(context) {
     	try{
-            var functionType = context.request.parameters.functionType;
+            functionType = context.request.parameters.functionType;
             
             if(functionType == "createEstimate"){
                 var sameDayShipping = context.request.parameters.sameDayShipping;
@@ -20,6 +21,12 @@ function(record, helper) {
                 log.audit("salesOrderRecordId", salesOrderRecordId);
 
                 var response = getSalesOrderRecordValues(salesOrderRecordId);
+
+            } else if(functionType == "inactivateItems"){
+                var items = JSON.parse(context.request.parameters.items);
+                inactivateItems(items);
+
+                var response = "Success";
             }
             
         } catch(err) {            
@@ -28,14 +35,14 @@ function(record, helper) {
                 error: err.message
             }
 			
-        } finally {
-        	log.audit("response", response);
-            response = JSON.stringify(response);
-            
-        	context.response.write({
-				output: response
-			});
-		}
+        }
+
+        log.audit("response", response);
+        response = JSON.stringify(response);
+        
+        context.response.write({
+            output: response
+        });
     }
 
     return {
@@ -52,7 +59,6 @@ function(record, helper) {
         });
 
         // Set Same-Day Shipping
-        log.debug("sameDayShipping", sameDayShipping);
         estimateRecord.setValue({
             fieldId: "custbody7",
             value: sameDayShipping
@@ -165,6 +171,7 @@ function(record, helper) {
                 BillingState: billingAddressValues.BillingState,
                 BillingZip: billingAddressValues.BillingZip,
                 ShippingAddressee: shippingAddressValues.ShippingAddressee,
+                ShippingAttention: shippingAddressValues.ShippingAttention,
                 ShippingLine1: shippingAddressValues.ShippingLine1,
                 ShippingLine2: shippingAddressValues.ShippingLine2,
                 ShippingCity: shippingAddressValues.ShippingCity,
@@ -211,6 +218,7 @@ function(record, helper) {
         var fieldIdsArray = 
         [
             ["addressee", "ShippingAddressee"],
+            ["attention", "ShippingAttention"],
             ["addr1", "ShippingLine1"],
             ["addr2", "ShippingLine2"],
             ["city", "ShippingCity"],
@@ -253,5 +261,26 @@ function(record, helper) {
         }
 
         return lineItemValues;
+    }
+
+
+    function inactivateItems(items) {
+        try{
+            for(var i=0; i < items.length; i++) {
+                var itemRecordType = items[i].isKit ? record.Type.KIT_ITEM : record.Type.INVENTORY_ITEM;
+
+                record.submitFields({
+                    type: itemRecordType,
+                    id: items[i].ItemId,
+                    values: {
+                        isinactive: true
+                    }
+                });
+                log.audit("Item has been activated", "Item Id " + items[i].ItemId);
+            }
+
+        } catch(err) {
+            log.error("Error", err);
+        }
     }
 });

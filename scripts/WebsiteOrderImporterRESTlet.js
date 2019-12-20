@@ -3,12 +3,13 @@
  * @NScriptType Restlet
  * @NModuleScope SameAccount
  */
-define(['N/record', 'N/search', 'S/teamslog.js', 'S/helpers.js'],
+define(['N/record', 'N/search', 'S/teamslog.js', 'S/helpers.js', 'N/email', 'N/url'],
 
-function(record, search, teamsLog, helper) {
+function(record, search, teamsLog, helper, email, url) {
 	const teamsUrl = "https://outlook.office.com/webhook/ccaff0e4-631a-4421-b57a-c899e744d60f@3c2f8435-994c-4552-8fe8-2aec2d0822e4/IncomingWebhook/9627607123264385b536d2c1ff1dbd4b/f69cfaae-e768-453b-8323-13e5bcff563f";
     const avatax = "1990053";
     var hasRelatedEstimate;
+    var siteOrderNumber;
     
     function doPost(requestBody) {
         try{
@@ -30,12 +31,14 @@ function(record, search, teamsLog, helper) {
             ];
             checkRequiredFields(requestBody, requiredFields);
             
+            siteOrderNumber = requestBody.SiteOrderNumber;
+
             // Check if there is an existing Sales Order with the same Site Order Number ('PO #' field on the Sales Order)
-            var findDuplicateOrdersResults = findDuplicateOrders(requestBody.SiteOrderNumber, requestBody.Department);
+            var findDuplicateOrdersResults = findDuplicateOrders(siteOrderNumber, requestBody.Department);
             var isDuplicate = findDuplicateOrdersResults[0];
 
             if(isDuplicate){
-                log.audit("Duplicate order", requestBody.SiteOrderNumber);
+                log.audit("Duplicate order", siteOrderNumber);
                 var salesOrderRecordId = findDuplicateOrdersResults[1];
             
             } else {
@@ -65,10 +68,9 @@ function(record, search, teamsLog, helper) {
         	var response = {
             	error: err.message
             }
-
-        } finally {
-            return response;
         }
+
+        return response;
     }
 
     return {
@@ -274,9 +276,15 @@ function(record, search, teamsLog, helper) {
             }
             
             var itemId = getItemId(lineItem);
-            var customPriceLevel = "-1";
-            var sublistId = "item";
 
+            // If the item is marked inactive, we will not be able to add it to the order
+            var itemStatus = getItemStatus(itemId);
+            
+            if(itemStatus.isInactive){
+                activateItem(itemId, itemStatus.isKit);
+            }
+
+            var customPriceLevel = "-1";
             var itemValues = [
                 // fieldId, value
                 ["item", itemId],
@@ -294,6 +302,7 @@ function(record, search, teamsLog, helper) {
             
             addOptionalItemFields(lineItem, optionalItemFields, itemValues);
             
+            var sublistId = "item";
             setSublistValues(salesOrderRecord, sublistId, itemValues);
         }
         return;
@@ -382,6 +391,92 @@ function(record, search, teamsLog, helper) {
 		
 		return itemId;
 	}
+
+
+    function getItemStatus(itemId) {
+        var isKit = false;
+        
+        var itemLookup = search.lookupFields({
+            type: search.Type.INVENTORY_ITEM,
+            id: itemId,
+            columns: "isinactive"
+        });
+
+        if(Object.keys(itemLookup).length == 0) {
+            itemLookup = search.lookupFields({
+                type: search.Type.KIT_ITEM,
+                id: itemId,
+                columns: "isinactive"
+            });
+            isKit = true;
+        }
+
+        return {
+            isKit: isKit,
+            isInactive: itemLookup.isinactive
+        }
+    }
+
+
+    function activateItem(itemId, isKit) {
+        try {
+            var itemRecordType = isKit ? record.Type.KIT_ITEM : record.Type.INVENTORY_ITEM;
+            
+            record.submitFields({
+                type: itemRecordType,
+                id: itemId,
+                values: {
+                    isinactive: false
+                }
+            });
+            log.audit("Item has been activated", "Item Id " + itemId);
+
+            notifyOperationsTeam(itemId, itemRecordType);
+
+        } catch(err) {
+            log.error("Unable to activate item id: " + itemId, err);
+            var message = {
+                from: "Error activateItem",
+                message: err.message,
+                color: "yellow"
+            }
+            teamsLog.log(message, teamsUrl);
+        }
+    }
+
+    function notifyOperationsTeam(itemId, itemRecordType) {
+        try{
+            var baseUrl = "https://634494.app.netsuite.com/";
+
+            var relativeUrl = url.resolveRecord({
+                recordType: itemRecordType,
+                recordId: itemId
+            });
+
+            var itemRecordUrl = baseUrl + relativeUrl;
+            
+            email.send({
+                author: 16050078,
+                recipients: 'enterpriseoperations@hmwallace.com',
+                cc: ['clinton.urbin@hmwallace.com', 'Dru.Brook@hmwallace.com'],
+                bcc: ['h.warner@supply.com'],
+                subject: 'Item Id '+itemId+' Activated in NetSuite',
+                replyTo: 'SuiteSquad@hmwallace.com',
+                body: 'Item Id '+itemId+' has been changed from inactive to active in NetSuite '+
+                    'because a Supply.com order has been placed with it. PO # '+ siteOrderNumber +
+                    '. Item record: ' + itemRecordUrl
+            });
+
+        } catch(err) {
+            log.error("Error in notifyOperationsTeam " + err);
+            var message = {
+                from: "Error in notifyOperationsTeam",
+                message: err.message,
+                color: "yellow"
+            }
+            teamsLog.log(message, teamsUrl);
+        }
+    }
 
 
     function checkPropertyAndSetValues(salesOrderRecord, requestObj, propertiesAndFieldIds){
