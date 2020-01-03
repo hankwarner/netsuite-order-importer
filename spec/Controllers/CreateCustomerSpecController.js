@@ -34,11 +34,11 @@ function(record, https, helper) {
         } finally {
             // Delete the item record if the request is from the 'CreateItemSuiteletSpec'
         	if(response.CustomerRecordId && functionType == "create"){
-            	// record.delete({
-                //     type: record.Type.CUSTOMER,
-                //     id: response.CustomerRecordId
-                // });
-                // log.audit("CustomerRecord deleted", response.customerId);
+            	record.delete({
+                    type: record.Type.CUSTOMER,
+                    id: response.CustomerRecordId
+                });
+                log.audit("CustomerRecord deleted", response.customerId);
             }
         	log.audit("response", response);
             response = JSON.stringify(response);
@@ -89,8 +89,8 @@ function(record, https, helper) {
 
                 // General info
                 ["email", "Email"],
-                ["firstname", "BillingFirstName"],
-                ["lastname", "BillingLastName"],
+                ["firstname", "CustomerFirstName"],
+                ["lastname", "CustomerLastName"],
                 ["altname", "AltName"],
                 ["custentity6", "Department"],
                 ["category", "UserTypeId"],
@@ -128,8 +128,8 @@ function(record, https, helper) {
                 TaxItem: customerRecordValues.TaxItem,
                 IsPerson: customerRecordValues.IsPerson,
                 Email: customerRecordValues.Email,
-                BillingFirstName: customerRecordValues.BillingFirstName,
-                BillingLastName: customerRecordValues.BillingLastName,
+                CustomerFirstName: customerRecordValues.CustomerFirstName,
+                CustomerLastName: customerRecordValues.CustomerLastName,
                 AltName: customerRecordValues.AltName,
                 Department: customerRecordValues.Department,
                 UserTypeId: customerRecordValues.UserTypeId,

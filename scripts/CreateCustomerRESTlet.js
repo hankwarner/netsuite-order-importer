@@ -163,15 +163,11 @@ function(record, search, teamsLog) {
 
 	function setCustomerFields(customerRecord, requestBody){
 		try{
-			// Full name:
 			requestBody.BillingName = requestBody.BillingFirstName + " " + requestBody.BillingLastName;
 
 			var propertiesAndFieldIds = [
                 // property, fieldId
 				["Email", "email"],
-				["BillingFirstName", "firstname"],
-				["BillingLastName", "lastname"],
-				["BillingName", "altname"],
 				["Department", "custentity6"],
 				["UserTypeId", "category"],
 				["PhoneNumber", "phone"],
@@ -183,6 +179,9 @@ function(record, search, teamsLog) {
 				["TaxVendor", "taxitem"],
 				["IsPerson", "isperson"],
 			];
+
+			setCustomerName(requestBody, propertiesAndFieldIds);
+
 			checkPropertyAndSetValues(customerRecord, requestBody, propertiesAndFieldIds);
 
 			// Default 'Source Complete' and 'Fulfill Complete' for Google child accounts
@@ -202,6 +201,25 @@ function(record, search, teamsLog) {
 				color: "yellow"
 			}
         	teamsLog.log(message, teamsUrl);
+		}
+	}
+
+
+	function setCustomerName(requestBody, propertiesAndFieldIds){
+		// Nest Pro orders will have the customer name in different fields
+		if(requestBody.Microsite == nestProMicrositeId){
+			propertiesAndFieldIds.push(
+				["CustomerFirstName", "firstname"],
+				["CustomerLastName", "lastname"],
+				["CustomerName", "altname"]
+			);
+
+		} else {
+			propertiesAndFieldIds.push(
+				["BillingFirstName", "firstname"],
+				["BillingLastName", "lastname"],
+				["BillingName", "altname"]
+			);
 		}
 	}
 

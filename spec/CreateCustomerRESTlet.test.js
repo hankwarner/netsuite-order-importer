@@ -51,8 +51,8 @@ describe("Create Customer", () => {
             expect(this.response.Email).toBe(this.newCustomerToCreate.Email);
             expect(this.response.PhoneNumber).toBe(this.newCustomerToCreate.PhoneNumber);
             expect(this.response.Company).toBe(this.newCustomerToCreate.Company);
-            expect(this.response.BillingFirstName).toBe(this.newCustomerToCreate.BillingFirstName);
-            expect(this.response.BillingLastName).toBe(this.newCustomerToCreate.BillingLastName);
+            expect(this.response.CustomerFirstName).toBe(this.newCustomerToCreate.BillingFirstName);
+            expect(this.response.CustomerLastName).toBe(this.newCustomerToCreate.BillingLastName);
             expect(this.response.AltName).toBe(this.newCustomerToCreate.BillingFirstName.concat(" "+this.newCustomerToCreate.BillingLastName));
             expect(this.response.Department).toBe(this.newCustomerToCreate.Department);
             expect(this.response.UserTypeId).toBe(this.newCustomerToCreate.UserTypeId);
@@ -131,8 +131,8 @@ describe("Create Customer", () => {
             expect(this.response.Email).toBe(this.newCustomerToCreate.Email);
             expect(this.response.PhoneNumber).toBe(this.newCustomerToCreate.PhoneNumber);
             expect(this.response.Company).toBe(this.newCustomerToCreate.Company);
-            expect(this.response.BillingFirstName).toBe(this.newCustomerToCreate.BillingFirstName);
-            expect(this.response.BillingLastName).toBe(this.newCustomerToCreate.BillingLastName);
+            expect(this.response.CustomerFirstName).toBe(this.newCustomerToCreate.BillingFirstName);
+            expect(this.response.CustomerLastName).toBe(this.newCustomerToCreate.BillingLastName);
             expect(this.response.AltName).toBe(this.newCustomerToCreate.BillingFirstName.concat(" "+this.newCustomerToCreate.BillingLastName));
             expect(this.response.Department).toBe(this.newCustomerToCreate.Department);
             expect(this.response.UserTypeId).toBe(this.newCustomerToCreate.UserTypeId);
@@ -174,6 +174,8 @@ describe("Create Customer", () => {
             PhoneNumber: "6498076930",
             Department: "23",
             Company: "Adult Swim",
+            CustomerFirstName: "Uncle",
+            CustomerLastName: "Morty",
             BillingFirstName: "Morty",
             BillingLastName: "Smith",
             BillingLine1: "1990 Harry Herpson Rd",
@@ -238,9 +240,9 @@ describe("Create Customer", () => {
             expect(this.newNestProCustomerResponse.Email).toBe(this.customer.Email);
             expect(this.newNestProCustomerResponse.PhoneNumber).toBe(this.customer.PhoneNumber);
             expect(this.newNestProCustomerResponse.Company).toBe(this.customer.Company);
-            expect(this.newNestProCustomerResponse.BillingFirstName).toBe(this.customer.BillingFirstName);
-            expect(this.newNestProCustomerResponse.BillingLastName).toBe(this.customer.BillingLastName);
-            expect(this.newNestProCustomerResponse.AltName).toBe(this.customer.BillingFirstName.concat(" "+this.customer.BillingLastName));
+            expect(this.newNestProCustomerResponse.CustomerFirstName).toBe(this.customer.CustomerFirstName);
+            expect(this.newNestProCustomerResponse.CustomerLastName).toBe(this.customer.CustomerLastName);
+            expect(this.newNestProCustomerResponse.AltName).toBe(this.customer.CustomerFirstName.concat(" "+this.customer.CustomerLastName));
             expect(this.newNestProCustomerResponse.Department).toBe(this.customer.Department);
             expect(this.newNestProCustomerResponse.UserTypeId).toBe(this.customer.UserTypeId);
             expect(this.newNestProCustomerResponse.SameDayShipping).toBe(this.customer.SameDayShipping);
