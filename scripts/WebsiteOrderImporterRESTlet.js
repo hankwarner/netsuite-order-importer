@@ -240,7 +240,7 @@ function(record, search, teamsLog, helper, email, url) {
                 ["Note", "memo"],
                 ["Microsite", "custbody242"],
                 ["IPAddress", "custbody267"],
-                ["Taxable", "taxable"],
+                ["Taxable", "istaxable"],
 				["TaxVendor", "taxitem"],
                 ["ShippingMethodName", "shipmethod"]
             ];
@@ -484,14 +484,14 @@ function(record, search, teamsLog, helper, email, url) {
             var property = propertiesAndFieldIds[i][0];
             var fieldId = propertiesAndFieldIds[i][1];
 
-            if(requestObj.hasOwnProperty(property) && requestObj[property]){
+            if((requestObj.hasOwnProperty(property) && requestObj[property]) || typeof requestObj[property] == "boolean"){
                 var value = requestObj[property];
                 
             } else {
                 // Sets the default value if one is not provided in the request
                 var value = getDefaultValue(property);
             }
-            
+
             salesOrderRecord.setValue({ fieldId: fieldId, value: value });
         }
 

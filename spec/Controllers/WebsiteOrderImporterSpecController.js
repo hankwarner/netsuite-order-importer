@@ -120,6 +120,7 @@ function(record, helper) {
                 ["custbody209", "DiscountNames"],
                 ["custbody40", "CheckoutTypeId"],
                 ["istaxable", "Taxable"],
+                ["taxitem", "TaxVendor"],
 
                 // Order information
                 ["otherrefnum", "SiteOrderNumber"],
@@ -150,6 +151,7 @@ function(record, helper) {
             var response = {
                 CustomerId: salesOrderRecordValues.CustomerId,
                 Taxable: salesOrderRecordValues.Taxable,
+                TaxVendor: salesOrderRecordValues.TaxVendor,
                 PaymentMethodId: salesOrderRecordValues.PaymentMethodId,
                 SH: salesOrderRecordValues.SH,
                 SignifydID: salesOrderRecordValues.SignifydID,
