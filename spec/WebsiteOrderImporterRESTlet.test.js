@@ -94,7 +94,8 @@ describe("Import Orders From Supply.com", () => {
             expect(this.controllerResponse.SignifydID).toBe(this.orderWithoutRelatedEstimate.SignifydID);
             expect(this.controllerResponse.DiscountNames).toBe(this.orderWithoutRelatedEstimate.DiscountNames);
             expect(this.controllerResponse.CheckoutTypeId).toBe(this.orderWithoutRelatedEstimate.CheckoutTypeId);
-            expect(this.controllerResponse.Taxable).toBeFalsy();
+            expect(this.controllerResponse.Taxable).toBe(true);
+            expect(this.controllerResponse.TaxVendor).toBe("1990053");
         });
 
         test("should set the general infomation fields", () => {
@@ -254,6 +255,8 @@ describe("Import Orders From Supply.com", () => {
             expect(this.controllerResponse.SignifydID).toBe(this.orderWithRelatedEstimate.SignifydID);
             expect(this.controllerResponse.DiscountNames).toBe(this.orderWithRelatedEstimate.DiscountNames);
             expect(this.controllerResponse.CheckoutTypeId).toBe(this.orderWithRelatedEstimate.CheckoutTypeId);
+            expect(this.controllerResponse.Taxable).toBe(true);
+            expect(this.controllerResponse.TaxVendor).toBe("1990053");
         });
 
         test("should set the general infomation fields", () => {
@@ -317,9 +320,9 @@ describe("Import Orders From Supply.com", () => {
     });
 
 
-    describe("Import orders with inactive items", () => {
+    describe("Create a new Nest Pro Order", () => {
         beforeAll(() => {
-            this.orderWithInactiveItem = {
+            this.nestProOrder = {
                 CustomerId: "17494445",
                 SiteOrderNumber: orderNumberGenerator.generateOrderNumber(),
                 Email: "BarryBlock@GeneCousineauActingStudio.com",
@@ -328,79 +331,54 @@ describe("Import Orders From Supply.com", () => {
                 Department: "29",
                 BillingLine1: "311 Amber Lane",
                 BillingLine2: "Apt B",
-                BillingCity: "Ventura",
-                BillingState: "CA",
-                BillingZip: "90754",
+                BillingCity: "Killen",
+                BillingState: "TX",
+                BillingZip: "75225",
                 ShippingFirstName: "Gene",
                 ShippingLastName: "Parmesan",
                 ShippingLine1: "141 Tupelo Dr.",
-                ShippingLine2: "Unit 605",
-                ShippingCity: "Santa Monica",
-                ShippingState: "CA",
-                ShippingZip: "91578",
+                ShippingLine2: "",
+                ShippingCity: "Austin",
+                ShippingState: "TX",
+                ShippingZip: "75225",
                 ShippingCountry: "US",
-                SH: 10,
-                ShippingMethodName: "UPS Ground",
-                Microsite: "31",
+                ShippingMethodName: "UPS Next Day Air Early A.M.",
+                IPAddress: "99.203.23.226",
+                AltOrderNumber: orderNumberGenerator.generateOrderNumber(),
+                Microsite: 31,
                 CheckoutTypeId: "4",
-                PaymentMethodId: "12",
-                SameDayShipping: "3",
+                PaymentMethodId: "1",
+                SameDayShipping: "4",
+                Taxable: false,
+                TaxVendor: " ",
                 Items: [
                     {
-                        ItemId: "39707",
-                        isKit: false,
-                        Quantity: 1,
-                        Rate: 138,
-                        Amount: 138,
-                    },
-                    {
-                        ItemId: "745894",
-                        isKit: true,
-                        Quantity: 1,
-                        Rate: 150,
-                        Amount: 150,
+                        ItemId: "10268",
+                        Quantity: 2,
+                        Rate: 120.00,
+                        Amount: 240.00,
+                        PersonalItem: false
                     }
                 ]
             }
-
-            var itemsJson = JSON.stringify(this.orderWithInactiveItem.Items);
-
-            // Mark the item as inactive
-            websiteOrderImpoterSpecControllerUrl += "&functionType=inactivateItems";
-            websiteOrderImpoterSpecControllerUrl += "&items="+itemsJson;
-            this.controllerResponse = httpRequest.get(websiteOrderImpoterSpecControllerUrl);
-
-            // Import the order
+            
+            // Send request to the WebsiteOrderImporterRESTlet
             this.restletResponse = httpRequest.post({
                 url: websiteOrderImporterRESTletUrl,
-                body: this.orderWithInactiveItem,
+                body: this.nestProOrder,
                 headers: headers
             });
+            // Store the sales order record id
             this.salesOrderRecordId = JSON.parse(this.restletResponse.body).salesOrderRecordId;
-
-            // Send to the controller to get the field values and store the response
-            websiteOrderImpoterSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1779&deploy=1&compid=634494_SB1&h=e2c8c227c3eb3b838b7a";
             websiteOrderImpoterSpecControllerUrl += "&functionType=create";
             websiteOrderImpoterSpecControllerUrl += "&salesOrderRecordId="+this.salesOrderRecordId;
+        
+            // Send to the controller to get the field values and store the response
             this.controllerResponse = httpRequest.get(websiteOrderImpoterSpecControllerUrl);
         });
-
-        test("should create a new sales order record and return the sales order record id", () => {
-            expect(this.salesOrderRecordId).not.toBeNull();
-        });
-
-        test("order should include the inactive item", () => {
-            this.orderWithInactiveItem.Items.forEach(element => {
-                var lineItemId = element.ItemId;
-                
-                this.controllerResponse.Items.forEach(netsuiteResponse => {
-                    if(netsuiteResponse.itemId == lineItemId){
-                        expect(netsuiteResponse.quantity).toBe(element.Quantity);
-                        expect(netsuiteResponse.amount).toBe(element.Amount);
-                        expect(netsuiteResponse.rate).toBe(element.Rate);
-                    }
-                });
-            });
+        
+        test("should set the not set the order as taxable", () => {
+            expect(this.controllerResponse.Taxable).toBe(this.nestProOrder.Taxable);
         });
 
         // Reset the Suitelet url to its original form
@@ -408,6 +386,99 @@ describe("Import Orders From Supply.com", () => {
             websiteOrderImpoterSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1779&deploy=1&compid=634494_SB1&h=e2c8c227c3eb3b838b7a";
         });
     });
+
+
+    // describe("Import orders with inactive items", () => {
+    //     beforeAll(() => {
+    //         this.orderWithInactiveItem = {
+    //             CustomerId: "17494445",
+    //             SiteOrderNumber: orderNumberGenerator.generateOrderNumber(),
+    //             Email: "BarryBlock@GeneCousineauActingStudio.com",
+    //             BillingFirstName: "Barry",
+    //             BillingLastName: "Block",
+    //             Department: "29",
+    //             BillingLine1: "311 Amber Lane",
+    //             BillingLine2: "Apt B",
+    //             BillingCity: "Ventura",
+    //             BillingState: "CA",
+    //             BillingZip: "90754",
+    //             ShippingFirstName: "Gene",
+    //             ShippingLastName: "Parmesan",
+    //             ShippingLine1: "141 Tupelo Dr.",
+    //             ShippingLine2: "Unit 605",
+    //             ShippingCity: "Santa Monica",
+    //             ShippingState: "CA",
+    //             ShippingZip: "91578",
+    //             ShippingCountry: "US",
+    //             SH: 10,
+    //             ShippingMethodName: "UPS Ground",
+    //             Microsite: "31",
+    //             CheckoutTypeId: "4",
+    //             PaymentMethodId: "12",
+    //             SameDayShipping: "3",
+    //             Items: [
+    //                 {
+    //                     ItemId: "39707",
+    //                     isKit: false,
+    //                     Quantity: 1,
+    //                     Rate: 138,
+    //                     Amount: 138,
+    //                 },
+    //                 {
+    //                     ItemId: "745894",
+    //                     isKit: true,
+    //                     Quantity: 1,
+    //                     Rate: 150,
+    //                     Amount: 150,
+    //                 }
+    //             ]
+    //         }
+
+    //         var itemsJson = JSON.stringify(this.orderWithInactiveItem.Items);
+
+    //         // Mark the item as inactive
+    //         websiteOrderImpoterSpecControllerUrl += "&functionType=inactivateItems";
+    //         websiteOrderImpoterSpecControllerUrl += "&items="+itemsJson;
+    //         this.controllerResponse = httpRequest.get(websiteOrderImpoterSpecControllerUrl);
+
+    //         // Import the order
+    //         this.restletResponse = httpRequest.post({
+    //             url: websiteOrderImporterRESTletUrl,
+    //             body: this.orderWithInactiveItem,
+    //             headers: headers
+    //         });
+    //         this.salesOrderRecordId = JSON.parse(this.restletResponse.body).salesOrderRecordId;
+
+    //         // Send to the controller to get the field values and store the response
+    //         websiteOrderImpoterSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1779&deploy=1&compid=634494_SB1&h=e2c8c227c3eb3b838b7a";
+    //         websiteOrderImpoterSpecControllerUrl += "&functionType=create";
+    //         websiteOrderImpoterSpecControllerUrl += "&salesOrderRecordId="+this.salesOrderRecordId;
+    //         this.controllerResponse = httpRequest.get(websiteOrderImpoterSpecControllerUrl);
+    //     });
+
+    //     test("should create a new sales order record and return the sales order record id", () => {
+    //         expect(this.salesOrderRecordId).not.toBeNull();
+    //     });
+
+    //     test("order should include the inactive item", () => {
+    //         this.orderWithInactiveItem.Items.forEach(element => {
+    //             var lineItemId = element.ItemId;
+                
+    //             this.controllerResponse.Items.forEach(netsuiteResponse => {
+    //                 if(netsuiteResponse.itemId == lineItemId){
+    //                     expect(netsuiteResponse.quantity).toBe(element.Quantity);
+    //                     expect(netsuiteResponse.amount).toBe(element.Amount);
+    //                     expect(netsuiteResponse.rate).toBe(element.Rate);
+    //                 }
+    //             });
+    //         });
+    //     });
+
+    //     // Reset the Suitelet url to its original form
+    //     afterAll(() => {
+    //         websiteOrderImpoterSpecControllerUrl = "https://634494-sb1.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1779&deploy=1&compid=634494_SB1&h=e2c8c227c3eb3b838b7a";
+    //     });
+    // });
 
 
     // describe("Throw exception if required field is missing", () => {
