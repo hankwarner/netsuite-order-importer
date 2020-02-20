@@ -164,6 +164,21 @@ function(record, search, teamsLog, helper, email, url) {
                 isDynamic: true
             });
             
+            //Default PD to blank for SOs with an estimate
+            var itemCount = salesOrderRecord.getLineCount('item');
+            for (var j = 0; j < itemCount; j++) {
+            	
+            	salesOrderRecord.selectLine({
+    			    sublistId : "item",
+    			    line : j
+    			});
+            	salesOrderRecord.setCurrentSublistValue({
+					sublistId : "item",
+					fieldId : "custcol_ss_precisiondelivery",
+					value : ''
+				    });
+			}
+            
             var relatedEstimateFields = [
                 ["custbody261", requestBody.RelatedEstimate],
                 ["entity", customerId]
@@ -221,6 +236,10 @@ function(record, search, teamsLog, helper, email, url) {
             if(requestBody.hasOwnProperty("ShippingMethodName")){
                 var shippingMethodName = requestBody.ShippingMethodName;
                 requestBody.ShippingMethodName = helper.mapShippingValues(shippingMethodName);
+                
+                if(shippingMethodName == 'Standard' || shippingMethodName == 'Priority' || shippingMethodName == '2-Hour Delivery' ){
+                	requestBody.ShippingMethodName = "315203" // shippers Choice
+                }
             }
 
             var propertiesAndFieldIds = [
@@ -283,6 +302,16 @@ function(record, search, teamsLog, helper, email, url) {
             if(itemStatus.isInactive){
                 activateItem(itemId, itemStatus.isKit);
             }
+            var reqShipMethodId = '';
+            var precisionDelivery = '';
+            if(lineItem.ShippingMethodName == 'Standard'){
+            	reqShipMethodId = 1;
+            }else if(lineItem.ShippingMethodName == 'Priority'){
+            	reqShipMethodId = 2;
+            }else if(lineItem.ShippingMethodName == '2-Hour Delivery'){
+            	reqShipMethodId = 3;
+            	precisionDelivery = 1;
+            }
 
             var customPriceLevel = "-1";
             var itemValues = [
@@ -291,8 +320,11 @@ function(record, search, teamsLog, helper, email, url) {
                 ["quantity", lineItem.Quantity],
                 ["price", customPriceLevel],
                 ["rate", lineItem.Rate],
-                ["amount", lineItem.Amount]
+                ["amount", lineItem.Amount],
+                ["custcol_ss_shippingguideline", reqShipMethodId],
+                ["custcol_ss_precisiondelivery", precisionDelivery]
             ];
+
 
             var optionalItemFields = [
                 ["DiscountNames", "custcol34"],
