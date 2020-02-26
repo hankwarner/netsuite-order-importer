@@ -163,6 +163,13 @@ function(record, search, teamsLog, helper, email, url) {
                 toType: record.Type.SALES_ORDER,
                 isDynamic: true
             });
+
+            // Set Same Day Shipping from the estimate's value
+            var sameDayShipping = salesOrderRecord.getValue({
+                fieldId: "custbody7"
+            });
+
+            requestBody.SameDayShipping = sameDayShipping;
             
             //Default PD to blank for SOs with an estimate
             var itemCount = salesOrderRecord.getLineCount('item');
@@ -261,13 +268,10 @@ function(record, search, teamsLog, helper, email, url) {
                 ["IPAddress", "custbody267"],
                 ["Taxable", "istaxable"],
 				["TaxVendor", "taxitem"],
-                ["ShippingMethodName", "shipmethod"]
+                ["ShippingMethodName", "shipmethod"],
+                ["SameDayShipping", "custbody7"]
             ];
             
-            // If a related estimate exists, do not set Same Day Shipping (ie, carry value over from the estimate)
-            if(!hasRelatedEstimate){
-                propertiesAndFieldIds.push(["SameDayShipping", "custbody7"]);
-            }
             checkPropertyAndSetValues(salesOrderRecord, requestBody, propertiesAndFieldIds);
 
             setBillingAddress(salesOrderRecord, requestBody);
