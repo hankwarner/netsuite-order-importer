@@ -524,6 +524,9 @@ function(record, search, teamsLog, helper, email, url) {
                 var value = getDefaultValue(property);
             }
 
+            // Bug fix that was overriding Same Day Shipping on orders with related estimates
+            if(hasRelatedEstimate && property == "SameDayShipping") continue;
+
             salesOrderRecord.setValue({ fieldId: fieldId, value: value });
         }
 
