@@ -1,23 +1,12 @@
 USE [Micro_transactions]
 GO
 
-/****** Object:  View [dbo].[vwNetSuiteOrders_block]    Script Date: 3/18/2020 1:47:22 PM ******/
+/****** Object:  View [dbo].[vwNetSuiteOrders_block]    Script Date: 3/18/2020 1:32:00 PM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
-
-
-
-
-
-
-
-
-
-
-
 
 CREATE VIEW [dbo].[vwNetSuiteOrders_block]
 AS
@@ -36,10 +25,10 @@ CROSS APPLY (SELECT
 			,1,1,'')			
 			) D ( DiscountNames)
 )
-SELECT     TOP (100) PERCENT dbo.csv_OrderGroup.order_number, dbo.OrderAddresses.Organization AS Company, OrderAddresses_1.FirstName AS B_FirstName, 
+SELECT     TOP (100) PERCENT dbo.csv_OrderGroup.order_number, OrderAddresses_1.Organization AS B_Company, OrderAddresses_1.FirstName AS B_FirstName, 
                       OrderAddresses_1.LastName AS B_LastName, OrderAddresses_1.Email, dbo.csv_OrderGroupAddresses.tel_number, OrderAddresses_1.Line1 AS B_Line1, 
                       OrderAddresses_1.Line2 AS B_Line2, OrderAddresses_1.City AS B_City, UPPER(OrderAddresses_1.RegionCode) AS B_State, 
-                      OrderAddresses_1.PostalCode AS B_Zip, OrderAddresses_1.CountryCode AS B_Country, dbo.OrderAddresses.FirstName AS S_FirstName, 
+                      OrderAddresses_1.PostalCode AS B_Zip, OrderAddresses_1.CountryCode AS B_Country, dbo.OrderAddresses.Organization AS S_Company, dbo.OrderAddresses.FirstName AS S_FirstName, 
                       dbo.OrderAddresses.LastName AS S_LastName, dbo.OrderAddresses.Line1 AS S_Line1, dbo.OrderAddresses.Line2 AS S_Line2, dbo.OrderAddresses.City AS S_City, 
                       UPPER(dbo.OrderAddresses.RegionCode) AS S_State, dbo.OrderAddresses.PostalCode AS S_Zip, dbo.OrderAddresses.CountryCode AS S_Country, 
                       dbo.OrderForms.Note, dbo.csv_OrderFormLineItems.quantity, fi.ItemName as Variant_SKU, fi.ItemName  AS Expr3, dbo.LineItems.ListPrice, 
@@ -83,16 +72,4 @@ FROM         dbo.OrderAddresses with(nolock) INNER JOIN
                       discounts with(nolock) ON dbo.PurchaseOrders.OrderGroupId=discounts.OrderGroupId
 WHERE     (dbo.PurchaseOrders.Created > DATEADD(DAY, - 30, GETDATE()))
 
-
-
-
-
-
-
-
-
-
-
 GO
-
-

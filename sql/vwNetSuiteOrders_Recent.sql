@@ -1,20 +1,12 @@
 USE [Micro_transactions]
 GO
 
-/****** Object:  View [dbo].[vwNetSuiteOrders_Recent]    Script Date: 3/18/2020 1:48:07 PM ******/
+/****** Object:  View [dbo].[vwNetSuiteOrders_Recent]    Script Date: 3/18/2020 11:40:22 AM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
-
-
-
-
-
-
-
-
 
 CREATE VIEW [dbo].[vwNetSuiteOrders_Recent]
 AS
@@ -43,17 +35,18 @@ WITH x AS (
 
 SELECT TOP (100) PERCENT 
 	dbo.csv_OrderGroup.order_number, 
-	dbo.OrderAddresses.Organization AS Company, 
 	OrderAddresses_1.FirstName AS B_FirstName, 
     OrderAddresses_1.LastName AS B_LastName, 
 	OrderAddresses_1.Email, 
 	dbo.csv_OrderGroupAddresses.tel_number, 
+	OrderAddresses_1.Organization AS B_Company,
 	OrderAddresses_1.Line1 AS B_Line1, 
     OrderAddresses_1.Line2 AS B_Line2, 
 	OrderAddresses_1.City AS B_City, 
 	UPPER(OrderAddresses_1.RegionCode) AS B_State, 
 	OrderAddresses_1.PostalCode AS B_Zip, 
-	OrderAddresses_1.CountryCode AS B_Country, 
+	OrderAddresses_1.CountryCode AS B_Country,
+	dbo.OrderAddresses.Organization AS S_Company,
 	dbo.OrderAddresses.FirstName AS S_FirstName, 
     dbo.OrderAddresses.LastName AS S_LastName, 
 	dbo.OrderAddresses.Line1 AS S_Line1, 
@@ -162,8 +155,5 @@ AND OrderAddresses_1.Email not in
 'kent.oshea@improvementdirect.com')
 and OrderAddresses_1.Email not like '%@test.com%'
 and right(OrderAddresses_1.Email,len('xounges.online')) <> 'xounges.online'
---AND dbo.csv_OrderGroup.order_number <> '20565082'
 
 GO
-
-

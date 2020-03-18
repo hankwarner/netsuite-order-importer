@@ -353,7 +353,8 @@ function(record, search, teamsLog, helper, email, url) {
 
             var billingValues = [
                 // property, fieldId
-                ["BillingAddressee", "addressee"],
+                ["BillingAddressee", "attention"],
+                ["BillingCompany", "addressee"],
                 ["BillingLine1", "addr1"],
                 ["BillingLine2", "addr2"],
                 ["BillingCity", "city"],
@@ -385,8 +386,8 @@ function(record, search, teamsLog, helper, email, url) {
             
             var shippingValues = [
                 // property, fieldId
-                ["ShippingAddressee", "addressee"],
-              	["ShippingCompany", "attention"],
+                ["ShippingAddressee", "attention"],
+              	["ShippingCompany", "addressee"],
                 ["ShippingLine1", "addr1"],
                 ["ShippingLine2", "addr2"],
                 ["ShippingCity", "city"],
