@@ -353,8 +353,6 @@ function(record, search, teamsLog, helper, email, url) {
 
             var billingValues = [
                 // property, fieldId
-                ["BillingAddressee", "attention"],
-                ["BillingCompany", "addressee"],
                 ["BillingLine1", "addr1"],
                 ["BillingLine2", "addr2"],
                 ["BillingCity", "city"],
@@ -362,6 +360,20 @@ function(record, search, teamsLog, helper, email, url) {
                 ["BillingZip", "zip"],
                 ["BillingCountry", "country"]
             ];
+
+            // If a BillingCompany exist, set it as the adressee and attn: to the customer name. Else, set customer name as the addressee
+            if(requestBody.hasOwnProperty("BillingCompany") && requestBody.BillingCompany){
+                billingValues.push(
+                    ["BillingAddressee", "attention"],
+                    ["BillingCompany", "addressee"]
+                );
+
+            } else {
+                billingValues.push(
+                    ["BillingAddressee", "addressee"]
+                );
+            }
+
             checkPropertyAndSetValues(billingAddressSubRecord, requestBody, billingValues);
 
             return;
@@ -386,8 +398,6 @@ function(record, search, teamsLog, helper, email, url) {
             
             var shippingValues = [
                 // property, fieldId
-                ["ShippingAddressee", "attention"],
-              	["ShippingCompany", "addressee"],
                 ["ShippingLine1", "addr1"],
                 ["ShippingLine2", "addr2"],
                 ["ShippingCity", "city"],
@@ -396,6 +406,20 @@ function(record, search, teamsLog, helper, email, url) {
                 ["ShippingCountry", "country"],
                 ["ShippingPhone", "addrphone"]
             ];
+
+            // If a ShippingCompany exist, set it as the adressee and attn: to the customer name. Else, set customer name as the addressee
+            if(requestBody.hasOwnProperty("ShippingCompany") && requestBody.ShippingCompany){
+                shippingValues.push(
+                    ["ShippingAddressee", "attention"],
+                    ["ShippingCompany", "addressee"]
+                );
+
+            } else {
+                shippingValues.push(
+                    ["ShippingAddressee", "addressee"]
+                );
+            }
+
             checkPropertyAndSetValues(shippingAddressSubRecord, requestBody, shippingValues);
 
 			return;
