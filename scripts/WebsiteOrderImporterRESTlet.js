@@ -650,7 +650,7 @@ function(record, search, teamsLog, helper, email, url) {
 
         switch (shippingMethodName) {
             case "2-hour delivery":
-                shippingMethodId = "315203";
+                shippingMethodId = "315203"; // Shipper's Choice
                 break;
             case "abf freight":
                 shippingMethodId = "1931984";
@@ -665,13 +665,13 @@ function(record, search, teamsLog, helper, email, url) {
                 shippingMethodId = "149327";
                 break;
             case "priority":
-                shippingMethodId = "315203";
+                shippingMethodId = "4230"; // UPS 2nd Day Air
                 break;
             case "shippers choice":
                 shippingMethodId = "315203";
                 break;
             case "standard":
-                shippingMethodId = "315203";
+                shippingMethodId = "3"; // UPS Ground
                 break;
             case "ups 2nd day air":
                 shippingMethodId = "4230";
@@ -713,7 +713,7 @@ function(record, search, teamsLog, helper, email, url) {
                 shippingMethodId = "4232";
                 break;
             default:
-                shippingMethodId = "3"; // UPS Ground
+                shippingMethodId = "315203"; // Shipper's Choice
                 break;
         }
 
