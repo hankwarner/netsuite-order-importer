@@ -8,7 +8,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE VIEW [dbo].[vwNetSuiteOrders_Recent]
+ALTER VIEW [dbo].[vwNetSuiteOrders_Recent]
 AS
 
 WITH x AS (
