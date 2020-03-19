@@ -242,11 +242,7 @@ function(record, search, teamsLog, helper, email, url) {
         try {
             if(requestBody.hasOwnProperty("ShippingMethodName")){
                 var shippingMethodName = requestBody.ShippingMethodName;
-                requestBody.ShippingMethodName = helper.mapShippingValues(shippingMethodName);
-                
-                if(shippingMethodName == 'Standard' || shippingMethodName == 'Priority' || shippingMethodName == '2-Hour Delivery' ){
-                	requestBody.ShippingMethodName = "315203" // shippers Choice
-                }
+                requestBody.ShippingMethodName = mapShippingValues(shippingMethodName);
             }
 
             var propertiesAndFieldIds = [
@@ -645,6 +641,83 @@ function(record, search, teamsLog, helper, email, url) {
         }
 
         return defaultValue;
+    }
+
+
+    function mapShippingValues(shippingMethodName){
+        shippingMethodName = shippingMethodName.toLowerCase();
+        var shippingMethodId;
+
+        switch (shippingMethodName) {
+            case "2-hour delivery":
+                shippingMethodId = "315203";
+                break;
+            case "abf freight":
+                shippingMethodId = "1931984";
+                break;
+            case "amazon":
+                shippingMethodId = "430617";
+                break;
+            case "ceva freight":
+                shippingMethodId = "1931985";
+                break;
+            case "customer pickup":
+                shippingMethodId = "149327";
+                break;
+            case "priority":
+                shippingMethodId = "315203";
+                break;
+            case "shippers choice":
+                shippingMethodId = "315203";
+                break;
+            case "standard":
+                shippingMethodId = "315203";
+                break;
+            case "ups 2nd day air":
+                shippingMethodId = "4230";
+                break;
+            case "ups 2nd day air am":
+                shippingMethodId = "4231";
+                break;
+            case "ups 2nd day air hi/al/pr":
+                shippingMethodId = "105444";
+                break;
+            case "ups 3 day select":
+                shippingMethodId = "4229";
+                break;
+            case "ups freight":
+                shippingMethodId = "436806";
+                break;
+            case "ups freight ltl guaranteed":
+                shippingMethodId = "677964";
+                break;
+            case "ups freight ltl guaranteed am":
+                shippingMethodId = "677965";
+                break;
+            case "ups ground":
+                shippingMethodId = "3";
+                break;
+            case "ups ground hi,al,pr":
+                shippingMethodId = "105445";
+                break;
+            case "ups next day air":
+                shippingMethodId = "4233";
+                break;
+            case "ups next day air early a.m.":
+                shippingMethodId = "4234";
+                break;
+            case "ups next day air hi,al,pr":
+                shippingMethodId = "105446";
+                break;
+            case "ups next day air saver":
+                shippingMethodId = "4232";
+                break;
+            default:
+                shippingMethodId = "3"; // UPS Ground
+                break;
+        }
+
+        return shippingMethodId;
     }
 
 
