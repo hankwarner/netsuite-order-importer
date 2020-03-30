@@ -208,6 +208,15 @@ function(record, search, teamsLog) {
 	function setCustomerName(requestBody, propertiesAndFieldIds){
 		// Nest Pro orders will have the customer name in different fields
 		if(requestBody.Microsite == nestProMicrositeId){
+			// Make sure name fields are not over the NetSuite character limit
+			if(requestBody.hasOwnProperty("CustomerFirstName") && requestBody.CustomerFirstName.length > 32){
+				requestBody.CustomerFirstName = requestBody.CustomerFirstName.slice(0, 32);
+			}
+
+			if(requestBody.hasOwnProperty("CustomerLastName") && requestBody.CustomerLastName.length > 32){
+				requestBody.CustomerLastName = requestBody.CustomerLastName.slice(0, 32);
+			}
+			
 			propertiesAndFieldIds.push(
 				["CustomerFirstName", "firstname"],
 				["CustomerLastName", "lastname"],
@@ -215,6 +224,15 @@ function(record, search, teamsLog) {
 			);
 
 		} else {
+			// Make sure name fields are not over the NetSuite character limit
+			if(requestBody.hasOwnProperty("BillingFirstName") && requestBody.BillingFirstName.length > 32){
+				requestBody.BillingFirstName = requestBody.BillingFirstName.slice(0, 32);
+			}
+
+			if(requestBody.hasOwnProperty("BillingLastName") && requestBody.BillingLastName.length > 32){
+				requestBody.BillingLastName = requestBody.BillingLastName.slice(0, 32);
+			}
+			
 			propertiesAndFieldIds.push(
 				["BillingFirstName", "firstname"],
 				["BillingLastName", "lastname"],
