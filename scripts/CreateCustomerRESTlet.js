@@ -1,5 +1,5 @@
 /**
- * @NApiVersion 2.0
+ * @NApiVersion 2.1
  * @NScriptType Restlet
  * @NModuleScope SameAccount
  */
@@ -384,22 +384,44 @@ function(record, search, teamsLog) {
 	
 
 	function checkPropertyAndSetValues(customerRecord, requestObj, propertiesAndFieldIds){
-        for(var i=0; i < propertiesAndFieldIds.length; i++){
-            var property = propertiesAndFieldIds[i][0];
-			var fieldId = propertiesAndFieldIds[i][1];
+		try {
+			for(var i=0; i < propertiesAndFieldIds.length; i++){
+				var property = propertiesAndFieldIds[i][0];
+				var fieldId = propertiesAndFieldIds[i][1];
+	
+				if((requestObj.hasOwnProperty(property) && requestObj[property]) || typeof requestObj[property] == "boolean"){
+					var value = requestObj[property];
+	
+				} else {
+					// Sets the default value if one is not provided in the request
+					var value = getDefaultValue(property);
+				}
+	
+				try {
+					customerRecord.setValue({ fieldId: fieldId, value: value });
 
-            if((requestObj.hasOwnProperty(property) && requestObj[property]) || typeof requestObj[property] == "boolean"){
-                var value = requestObj[property];
+				} catch (err) {
+					log.error("Error in CreateCustomerRESTlet setting fieldId" + fieldId + " value " + value, err.message);
+					var message = {
+						from: "Error in CreateCustomerRESTlet setValue",
+						message: "fieldId " + fieldId + " value " + value + "Error " + err.message,
+						color: "yellow"
+					}
+					teamsLog.log(message, teamsUrl);
+				}
+			}
+	
+			return;
 
-            } else {
-                // Sets the default value if one is not provided in the request
-                var value = getDefaultValue(property);
-            }
-
-			customerRecord.setValue({ fieldId: fieldId, value: value });
-        }
-
-        return;
+		} catch (err) {
+			log.error("Error in checkPropertyAndSetValues", err);
+			var message = {
+				from: "Error in CreateCustomerRESTlet checkPropertyAndSetValues",
+				message: err.message,
+				color: "yellow"
+			}
+        	teamsLog.log(message, teamsUrl);
+		}
 	}
 
 
