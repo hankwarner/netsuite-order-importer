@@ -180,6 +180,7 @@ function(record, search, teamsLog) {
 				["Taxable", "taxable"],
 				["TaxVendor", "taxitem"],
 				["IsPerson", "isperson"],
+				["SalesRep", "salesrep"]
 			];
 
 			setCustomerName(requestBody, propertiesAndFieldIds);
