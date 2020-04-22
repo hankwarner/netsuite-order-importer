@@ -28,7 +28,6 @@ function(record, search, teamsLog) {
 				"ShippingZip",
 				"Microsite"
             ];
-			checkRequiredFields(requestBody, requiredFields);
 
             // Check if customer exists
 			var getCustomerIdResponse = getCustomerId(requestBody);
@@ -143,10 +142,13 @@ function(record, search, teamsLog) {
 			});
 
 			setCustomerFields(customerRecord, requestBody);
-			setBillingAddress(customerRecord, requestBody);
+
+			if(requestBody.BillingLine1){
+				setBillingAddress(customerRecord, requestBody);
+			}
 			
 			// If shipping address exists and is not the same as billing address, create a new address subrecord
-			if(requestBody.ShippingLine1 != requestBody.BillingLine1){
+			if(requestBody.ShippingLine1 && requestBody.ShippingLine1 != requestBody.BillingLine1){
 				setShippingAddress(customerRecord, requestBody);
 			}
 
