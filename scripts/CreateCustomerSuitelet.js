@@ -403,6 +403,9 @@ function(record, search, teamsLog) {
 			case "IsPerson":
 				defaultValue = "T";
 				break;
+			case "NotAPro":
+				defaultValue = false;
+				break;
             default:
                 defaultValue = "";
                 break;
