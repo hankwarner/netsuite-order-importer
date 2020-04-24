@@ -38,12 +38,6 @@ function(record, search, teamsLog) {
             
             var response = customerId;
 
-            // var response = {
-			//    customerId: customerId,
-			//    sameDayShipping: sameDayShipping
-			// };
-
-
         } catch (err) {
             log.error("Error in CreateCustomerSuitelet ", err);
 			var message = {
@@ -207,7 +201,8 @@ function(record, search, teamsLog) {
 				["Taxable", "taxable"],
 				["TaxVendor", "taxitem"],
 				["IsPerson", "isperson"],
-				["SalesRep", "salesrep"]
+				["SalesRep", "salesrep"],
+				["NotAPro", "custentity191"]
 			];
 
 			setCustomerName(propertiesAndFieldIds);
