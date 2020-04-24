@@ -213,7 +213,7 @@ function(record, search, teamsLog) {
 			var googleParentId = 18054032; // production
 			//var googleParentId = 17496702; // sandbox
 			if(request.hasOwnProperty("ParentAccountId") && request.ParentAccountId == googleParentId){
-				setSourcingFields(customerRecord, request);
+				setSourcingFields(customerRecord);
 			}
 
 			return;
@@ -339,7 +339,29 @@ function(record, search, teamsLog) {
 			}
         	teamsLog.log(message, teamsUrl);
 		}
-    }
+	}
+	
+
+	function setSourcingFields(customerRecord) {
+		try {
+			var propertiesAndFieldIds = [
+				// property, fieldId
+				["SourceComplete", "custentity_ss_sourcecomplete"],
+				["SourceKitsComplete", "custentity_ss_sourcekitscomplete"],
+				["FulfillComplete", "custentity_ss_fulfillcomplete"],
+			];
+			checkPropertyAndSetValues(customerRecord, request, propertiesAndFieldIds);
+
+		} catch(err) {
+			log.error("Error in setSourcingFields ", err);
+			var message = {
+				from: "Error in CreateCustomerRESTlet setSourcingFields",
+				message: err.message,
+				color: "yellow"
+			}
+        	teamsLog.log(message, teamsUrl);
+		}
+	}
     
 
     function checkPropertyAndSetValues(customerRecord, propertiesAndFieldIds){
