@@ -93,9 +93,7 @@ Accepts a JSON object with the following key-value pairs:
 
 **string** `PhoneNumber`: The billing phone number used during purchase.
 
-**string** `ShippingMethodName`: The specific type of shipping. Populates _shipmethod_ in NetSuite.
-   _Options_: "UPS Ground", "UPS 2nd Day Air", "UPS 2nd Day Air A.M.", "UPS 3 Day Select", "UPS Freight", "UPS Freight LTL Guaranteed", "UPS Next Day Air", "UPS Next Day Air Early A.M."
-
+**string** `ShippingMethodName`: The specific type of shipping. Populates _shipmethod_ in NetSuite. _"Standard" maps to Shipper's Choice, "Priority" maps to UPS 2nd Day Air._
 
 **string** `Note`: Order comments. Populates _memo_.
 
@@ -134,7 +132,7 @@ Accepts a JSON object with the following key-value pairs:
    "ShippingPhone": "212-974-4854",
    "Note": "This is a valuable customer",
    "SH": 50.00,
-   "ShippingMethodName": "UPS 2nd Day Air Early A.M.",
+   "ShippingMethodName": "Priority",
    "JobName": "Studio construction",
    "DiscountNames": "SPR8784",
    "IPAddress": "99.203.23.226",
@@ -145,7 +143,7 @@ Accepts a JSON object with the following key-value pairs:
    "UserTypeId": 2,
    "CheckoutTypeId": 4,
    "PaymentMethodId": 1,
-   "PersonalItem": false
+   "PersonalItem": false,
    "Items": [
       {
         "ItemId": "10268",
@@ -188,19 +186,19 @@ Accepts a JSON object with the following key-value pairs:
 
 
 
-# CreateCustomerRESTlet
+# CreateCustomerSuitelet
 API endpoint for creating new customer records in NetSuite (matching on email). If the customer does not exist in NetSuite, a new record will be created. The customer's internal NetSuite record ID is returned in the response.
 
-
+## URL
+https://634494.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1871&deploy=1&compid=634494&h=322a6c804262e61faadc
 
 ## Headers
 **required** `Content-Type: application/json`
 
-**required** `Authorization: NLAuth nlauth_account={NS_ACCT_ID},nlauth_email={NS_EMAIL},nlauth_signature={NS_PW},nlauth_role={NS_ROLE}`
 
+## Parameters
+**required** name: jsonRequest
 
-
-## Body
 Accepts a JSON object with the following key-value pairs:
 
 
@@ -208,11 +206,23 @@ Accepts a JSON object with the following key-value pairs:
 **string** `Email`: The customer's primary email address.
 
 #### Billing address:
+
+
+
+#### Shipping address:
+
+
+
+### Optional
 **string** `BillingFirstName`
 
 **string** `BillingLastName`
 
 **string** `BillingLine1`
+
+**string** `BillingLine2`
+
+**string** `BillingCountry`
 
 **string** `BillingCity`
 
@@ -220,29 +230,21 @@ Accepts a JSON object with the following key-value pairs:
 
 **string** `BillingZip`
 
-
-#### Shipping address:
 **string** `ShippingFirstName`
 
 **string** `ShippingLastName`
 
 **string** `ShippingLine1`
 
+**string** `ShippingLine2`
+ 
+**string** `ShippingCountry`
+
 **string** `ShippingCity`
 
 **string** `ShippingState`
 
 **string** `ShippingZip`
-
-
-### Optional
-**string** `BillingLine2`
-
-**string** `BillingCountry`
-
-**string** `ShippingLine2`
- 
-**string** `ShippingCountry`
 
 **string** `PhoneNumber`: The customer's primary phone number.
 
@@ -285,23 +287,18 @@ Accepts a JSON object with the following key-value pairs:
 
 
 ## Returns
-`application/json`
+a `string` value with the customer ID.
 
 
 
 ### Example Success Response
 ```
-{
-   "customerId": "18048720",
-   "sameDayShipping": "3"
-}
+"18048720"
 ```
 
 
 ### Example Error Response
 ```
-{
-   "error": "Email is required"
-}
+"Error: Email is required"
 ```
 
