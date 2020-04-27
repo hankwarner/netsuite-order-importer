@@ -3,6 +3,9 @@
 API endpoint for importing orders from microsites, such as Pro.Supply.com, Google Nest Pro, etc., into NetSuite for fulfillment and reporting.
 
 
+## Base URL
+https://634494.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1761&deploy=1
+
 
 ## Headers
 **required** `Content-Type: application/json`
@@ -189,7 +192,7 @@ Accepts a JSON object with the following key-value pairs:
 # CreateCustomerSuitelet
 API endpoint for creating new customer records in NetSuite (matching on email). If the customer does not exist in NetSuite, a new record will be created. The customer's internal NetSuite record ID is returned in the response.
 
-## URL
+## Base URL
 https://634494.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=1871&deploy=1&compid=634494&h=322a6c804262e61faadc
 
 ## Headers
@@ -204,12 +207,6 @@ Accepts a JSON object with the following key-value pairs:
 
 ### Required
 **string** `Email`: The customer's primary email address.
-
-#### Billing address:
-
-
-
-#### Shipping address:
 
 
 
