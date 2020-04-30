@@ -1,12 +1,13 @@
 USE [Micro_transactions]
 GO
 
-/****** Object:  View [dbo].[vwNetSuiteOrders_Recent]    Script Date: 3/18/2020 11:40:22 AM ******/
+/****** Object:  View [dbo].[vwNetSuiteOrders_Recent]    Script Date: 4/29/2020 3:01:43 PM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 ALTER VIEW [dbo].[vwNetSuiteOrders_Recent]
 AS
@@ -90,7 +91,6 @@ SELECT TOP (100) PERCENT
 		WHEN ShippingMethodName = 'Next-Day Air' THEN 'True' 
 		WHEN Expedited IS NULL THEN 'False' 
 	ELSE Expedited END AS Expedited, 
-	dbo.LineItems.Site, 
 	dbo.OrderForms.CheckoutType, 
 	Micro_profiles.dbo.vwUserObjects.u_email_address, 
     gv.Variant_NetSuiteID, 
