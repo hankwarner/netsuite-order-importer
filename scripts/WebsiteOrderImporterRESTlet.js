@@ -665,7 +665,7 @@ function(record, search, teamsLog, helper, email, url) {
                 shippingMethodId = "149327";
                 break;
             case "priority":
-                shippingMethodId = "4230"; // UPS 2nd Day Air
+                shippingMethodId = "4233"; // UPS Next Day Air
                 break;
             case "shippers choice":
                 shippingMethodId = "315203";
