@@ -64,31 +64,38 @@ function(record, search, teamsLog) {
 
 
     function getCustomerId(){
-		var searchFilters = createSearchFilters();
+		try {
+			var searchFilters = createSearchFilters();
 
-		// Match on email
-		var customerSearch = search.create({
-			type: "customer",
-			filters: searchFilters,
-			columns:
-			[
-				search.createColumn({name: "internalid"}),
-				search.createColumn({name: "custentity7", label: "Same Day Shipping"})
-			]
-		});
+			// Match on email
+			var customerSearch = search.create({
+				type: "customer",
+				filters: searchFilters,
+				columns:
+				[
+					search.createColumn({name: "internalid"}),
+					search.createColumn({name: "custentity7", label: "Same Day Shipping"})
+				]
+			});
 
-		// Get the first customer that matches
-		var customerSearchResults = customerSearch.run().getRange(0, 1);
-		
-		if(!customerSearchResults || customerSearchResults.length == 0){
-			log.audit("Customer does not exist");
-			return false;
+			// Get the first customer that matches
+			var customerSearchResults = customerSearch.run().getRange(0, 1);
+			
+			if(!customerSearchResults || customerSearchResults.length == 0){
+				log.audit("Customer does not exist");
+				return false;
+			}
+
+			var customerId = customerSearchResults[0].getValue(customerSearch.columns[0]);
+			var sameDayShipping = customerSearchResults[0].getValue(customerSearch.columns[1]);
+			
+			return [customerId, sameDayShipping];
+
+		} catch (err) {
+			log.error("Error in getCustomerId", err);
+			log.error("Email", request.Email);
+			throw err;
 		}
-
-		var customerId = customerSearchResults[0].getValue(customerSearch.columns[0]);
-		var sameDayShipping = customerSearchResults[0].getValue(customerSearch.columns[1]);
-		
-		return [customerId, sameDayShipping];
     }
 
 
