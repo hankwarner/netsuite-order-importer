@@ -343,6 +343,12 @@ function(record, search, teamsLog, helper, email, url) {
 
     function setBillingAddress(salesOrderRecord, requestBody){
 		try{
+            // Clear the default address:
+            salesOrderRecord.setValue({
+                fieldId: "billaddresslist",
+                value: null
+            });
+            
             var billingAddressSubRecord = salesOrderRecord.getSubrecord({ fieldId: 'billingaddress' });
             
             requestBody.BillingAddressee = requestBody.BillingFirstName + " " + requestBody.BillingLastName;
@@ -388,7 +394,13 @@ function(record, search, teamsLog, helper, email, url) {
 
 	function setShippingAddress(salesOrderRecord, requestBody){
 		try {
-			var shippingAddressSubRecord = salesOrderRecord.getSubrecord({ fieldId: 'shippingaddress' });
+            // Clear the default address:
+            salesOrderRecord.setValue({
+                fieldId: "shipaddresslist",
+                value: null
+            });
+            
+            var shippingAddressSubRecord = salesOrderRecord.getSubrecord({ fieldId: 'shippingaddress' });
             
             requestBody.ShippingAddressee = requestBody.ShippingFirstName + " " + requestBody.ShippingLastName;
             
