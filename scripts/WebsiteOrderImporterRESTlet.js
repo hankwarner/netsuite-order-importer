@@ -1,11 +1,11 @@
 /**
- * @NApiVersion 2.0
+ * @NApiVersion 2.1
  * @NScriptType Restlet
  * @NModuleScope SameAccount
  */
-define(['N/record', 'N/search', 'S/teamslog.js', 'S/helpers.js', 'N/email', 'N/url'],
+define(['N/record', 'N/search', 'S/teamslog.js', 'N/email', 'N/url'],
 
-function(record, search, teamsLog, helper, email, url) {
+function(record, search, teamsLog, email, url) {
 	const teamsUrl = "https://outlook.office.com/webhook/ccaff0e4-631a-4421-b57a-c899e744d60f@3c2f8435-994c-4552-8fe8-2aec2d0822e4/IncomingWebhook/9627607123264385b536d2c1ff1dbd4b/f69cfaae-e768-453b-8323-13e5bcff563f";
     const avatax = "1990053";
     var hasRelatedEstimate;
@@ -245,6 +245,8 @@ function(record, search, teamsLog, helper, email, url) {
                 requestBody.ShippingMethodName = mapShippingValues(shippingMethodName);
             }
 
+            setTaxExemptStatusOnOrder(requestBody);
+
             var propertiesAndFieldIds = [
                 // property, fieldId
                 ["PaymentMethodId", "paymentmethod"],
@@ -283,6 +285,44 @@ function(record, search, teamsLog, helper, email, url) {
             log.error("Error in setSalesOrderValues", err);
             throw err;
         }
+    }
+
+
+    function setTaxExemptStatusOnOrder(requestBody){
+        try {
+            // Get the customer tax exempt states
+            var customerTaxExemptStateSearch = search.lookupFields({
+                type: search.Type.CUSTOMER,
+                id: requestBody.CustomerId,
+                columns: "custentity_ss_taxexemptstates"
+            });
+
+            // Return if customer has is not tax exempt in any states
+            if(customerTaxExemptStateSearch.custentity_ss_taxexemptstates.length == 0) return;
+
+            var taxExemptStatesArray = customerTaxExemptStateSearch.custentity_ss_taxexemptstates.map(x => x.text);
+            log.audit("taxExemptStatesArray", taxExemptStatesArray);
+
+            var shippingState = requestBody.ShippingState;
+
+            // Taxable defaults to true, so we only need to override if it is false
+            if(taxExemptStatesArray.includes(shippingState)){
+                log.audit("Order is tax exempt");
+                requestBody.Taxable = false;
+            }
+
+            return;
+
+        } catch (err) {
+            log.error("Error in setTaxExemptStatusOnOrder");
+            var message = {
+				from: "Error in WebsiteOrderImporterRESTlet setTaxExemptStatusOnOrder",
+				message: err.message,
+				color: "red"
+			}
+        	teamsLog.log(message, teamsUrl);
+        }
+
     }
 
 
