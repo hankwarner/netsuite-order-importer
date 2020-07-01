@@ -279,6 +279,11 @@ function(record, search, teamsLog, email, url) {
                     fieldId: 'custbody_ss_sourcecomplete',
                     value: true
                 });
+
+                salesOrderRecord.setValue({
+                    fieldId: 'custbody_ss_fulfillcomplete',
+                    value: true
+                });
             }
 
             setBillingAddress(salesOrderRecord, requestBody);
