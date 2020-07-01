@@ -8,6 +8,7 @@ define(['N/record', 'N/search', 'S/teamslog.js', 'N/email', 'N/url'],
 function(record, search, teamsLog, email, url) {
 	const teamsUrl = "https://outlook.office.com/webhook/ccaff0e4-631a-4421-b57a-c899e744d60f@3c2f8435-994c-4552-8fe8-2aec2d0822e4/IncomingWebhook/9627607123264385b536d2c1ff1dbd4b/f69cfaae-e768-453b-8323-13e5bcff563f";
     const avatax = "1990053";
+    const nestProMicrositeId = '31';
     var hasRelatedEstimate;
     var siteOrderNumber;
     
@@ -271,6 +272,19 @@ function(record, search, teamsLog, email, url) {
             ];
             
             checkPropertyAndSetValues(salesOrderRecord, requestBody, propertiesAndFieldIds);
+
+            // Nest Pro orders should be Source Complete
+            if(requestBody.Microsite == nestProMicrositeId){
+                salesOrderRecord.setValue({
+                    fieldId: 'custbody_ss_sourcecomplete',
+                    value: true
+                });
+
+                salesOrderRecord.setValue({
+                    fieldId: 'custbody_ss_fulfillcomplete',
+                    value: true
+                });
+            }
 
             setBillingAddress(salesOrderRecord, requestBody);
             setShippingAddress(salesOrderRecord, requestBody);
