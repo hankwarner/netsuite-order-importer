@@ -274,7 +274,7 @@ function(record, search, teamsLog, email, url) {
             checkPropertyAndSetValues(salesOrderRecord, requestBody, propertiesAndFieldIds);
 
             // Nest Pro orders should be Source Complete
-            if(request.Microsite == nestProMicrositeId){
+            if(requestBody.Microsite == nestProMicrositeId){
                 salesOrderRecord.setValue({
                     fieldId: 'custbody_ss_sourcecomplete',
                     value: true
