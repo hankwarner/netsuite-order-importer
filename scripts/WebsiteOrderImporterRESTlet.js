@@ -254,11 +254,11 @@ function(record, search, teamsLog, email, url) {
                     requestBody.SameDayShipping = 2;
                 }                
                 if(requestBody.CustomerStatus == 'Invalid' || requestBody.CustomerStatus == 'Unknown'){
-                	requestBody.SameDayShipping = 4;
+                	requestBody.SameDayShipping = 4; // Held orders
                 }
                                 
                 //Sets Customer Status on the customer Record
-                SetCustomerStatus(requestBody);
+                setGoogleAcctVerifiedStatus(requestBody);
             }  
 
             var propertiesAndFieldIds = [
@@ -314,7 +314,7 @@ function(record, search, teamsLog, email, url) {
         }
     }
 
-    function SetCustomerStatus(requestBody){
+    function setGoogleAcctVerifiedStatus(requestBody){
     	try{
     		
     		var statusId;
@@ -340,8 +340,13 @@ function(record, search, teamsLog, email, url) {
         	});
             
     	}catch(err){
-    		log.debug("Error Updating Customer Status: ", e);
-    		throw err;
+    		log.error("Error in setCustomerStatus: ", err);
+    		var message = {
+				from: "Error in WebsiteOrderImporterRESTlet setCustomerStatus",
+				message: err.message,
+				color: "yellow"
+			}
+        	teamsLog.log(message, teamsUrl);
     	}
     }
 
