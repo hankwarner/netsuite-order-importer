@@ -291,8 +291,6 @@ function(record, search, teamsLog, email, url) {
             
             checkPropertyAndSetValues(salesOrderRecord, requestBody, propertiesAndFieldIds);
 
-            
-
             setBillingAddress(salesOrderRecord, requestBody);
             setShippingAddress(salesOrderRecord, requestBody);
 
