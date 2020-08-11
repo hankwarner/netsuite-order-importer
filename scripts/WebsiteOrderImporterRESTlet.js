@@ -250,10 +250,10 @@ function(record, search, teamsLog, email, url) {
 
             if(requestBody.Microsite == nestProMicrositeId){
                 //Set Same Day Shipping on Sales Order
-                if(requestBody.CustomerStatus == 'Valid'){
+                if(requestBody.hasOwnProperty("CustomerStatus") && requestBody.CustomerStatus == 'Valid'){
                     requestBody.SameDayShipping = 2;
                 }                
-                if(requestBody.CustomerStatus == 'Invalid' || requestBody.CustomerStatus == 'Unknown'){
+                if(requestBody.hasOwnProperty("CustomerStatus") && (requestBody.CustomerStatus == 'Invalid' || requestBody.CustomerStatus == 'Unknown')){
                 	requestBody.SameDayShipping = 4; // Held orders
                 }
                                 
