@@ -248,6 +248,24 @@ function(record, search, teamsLog, email, url) {
 
             setTaxExemptStatusOnOrder(requestBody);
 
+            // All Google Nest Pro orders should Source Complete and Fulfill Complete
+            if(requestBody.Microsite == nestProMicrositeId){
+                salesOrderRecord.setValue({
+                    fieldId: 'custbody_ss_sourcecomplete',
+                    value: true
+                });
+
+                salesOrderRecord.setValue({
+                    fieldId: 'custbody_ss_fulfillcomplete',
+                    value: true
+                });
+
+                if(requestBody.hasOwnProperty("CustomerStatus")){
+                    //Sets Customer Status on the customer Record
+                    setGoogleAcctVerifiedStatus(requestBody);
+                }
+            }
+
             var propertiesAndFieldIds = [
                 // property, fieldId
                 ["PaymentMethodId", "paymentmethod"],
@@ -273,19 +291,6 @@ function(record, search, teamsLog, email, url) {
             
             checkPropertyAndSetValues(salesOrderRecord, requestBody, propertiesAndFieldIds);
 
-            // Nest Pro orders should be Source Complete
-            if(requestBody.Microsite == nestProMicrositeId){
-                salesOrderRecord.setValue({
-                    fieldId: 'custbody_ss_sourcecomplete',
-                    value: true
-                });
-
-                salesOrderRecord.setValue({
-                    fieldId: 'custbody_ss_fulfillcomplete',
-                    value: true
-                });
-            }
-
             setBillingAddress(salesOrderRecord, requestBody);
             setShippingAddress(salesOrderRecord, requestBody);
 
@@ -299,6 +304,46 @@ function(record, search, teamsLog, email, url) {
             log.error("Error in setSalesOrderValues", err);
             throw err;
         }
+    }
+
+    function setGoogleAcctVerifiedStatus(requestBody){
+    	try{
+            var statusId;
+            log.audit("Google customer status", requestBody.CustomerStatus);
+    		
+            if(requestBody.CustomerStatus == 'Valid'){
+                statusId = 1;
+                requestBody.SameDayShipping = 2; // Do not hold oder
+
+            } else {
+                requestBody.SameDayShipping = 4; // Hold order
+            }
+            
+            if(requestBody.CustomerStatus == 'Invalid'){
+                statusId = 2;
+            }
+            
+            if(requestBody.CustomerStatus == 'Unknown'){
+                statusId = 3;
+            }
+            
+        	record.submitFields({
+        		type: record.Type.CUSTOMER,
+        		id: requestBody.CustomerId,
+        		values: {   		
+        			custentity_ssgoogleacctverified: statusId
+        		}
+        	});
+            
+    	}catch(err){
+    		log.error("Error in setGoogleAcctVerifiedStatus: ", err);
+    		var message = {
+				from: "Error in WebsiteOrderImporterRESTlet setGoogleAcctVerifiedStatus",
+				message: err.message,
+				color: "yellow"
+			}
+        	teamsLog.log(message, teamsUrl);
+    	}
     }
 
 
