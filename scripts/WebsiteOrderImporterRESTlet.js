@@ -248,6 +248,19 @@ function(record, search, teamsLog, email, url) {
 
             setTaxExemptStatusOnOrder(requestBody);
 
+            if(requestBody.Microsite == nestProMicrositeId){
+                //Set Same Day Shipping on Sales Order
+                if(requestBody.CustomerStatus == 'Valid'){
+                    requestBody.SameDayShipping = 2;
+                }                
+                if(requestBody.CustomerStatus == 'Invalid' || requestBody.CustomerStatus == 'Unknown'){
+                	requestBody.SameDayShipping = 4;
+                }
+                                
+                //Sets Customer Status on the customer Record
+                SetCustomerStatus(requestBody);
+            }  
+
             var propertiesAndFieldIds = [
                 // property, fieldId
                 ["PaymentMethodId", "paymentmethod"],
@@ -299,6 +312,37 @@ function(record, search, teamsLog, email, url) {
             log.error("Error in setSalesOrderValues", err);
             throw err;
         }
+    }
+
+    function SetCustomerStatus(requestBody){
+    	try{
+    		
+    		var statusId;
+    		
+            if(requestBody.CustomerStatus == 'Valid'){
+            	statusId = 1;
+            }
+            
+            if(requestBody.CustomerStatus == 'Invalid'){
+            	statusId = 2;
+            }
+            
+            if(requestBody.CustomerStatus == 'Unknown'){
+            	statusId = 3;
+            }
+            
+        	record.submitFields({
+        		type: record.Type.CUSTOMER,
+        		id: requestBody.CustomerId,
+        		values: {   		
+        			custentity_ssgoogleacctverified: statusId
+        		}
+        	});
+            
+    	}catch(err){
+    		log.debug("Error Updating Customer Status: ", e);
+    		throw err;
+    	}
     }
 
 
