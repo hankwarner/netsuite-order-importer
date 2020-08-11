@@ -316,7 +316,6 @@ function(record, search, teamsLog, email, url) {
 
     function setGoogleAcctVerifiedStatus(requestBody){
     	try{
-    		
     		var statusId;
     		
             if(requestBody.CustomerStatus == 'Valid'){
@@ -340,9 +339,9 @@ function(record, search, teamsLog, email, url) {
         	});
             
     	}catch(err){
-    		log.error("Error in setCustomerStatus: ", err);
+    		log.error("Error in setGoogleAcctVerifiedStatus: ", err);
     		var message = {
-				from: "Error in WebsiteOrderImporterRESTlet setCustomerStatus",
+				from: "Error in WebsiteOrderImporterRESTlet setGoogleAcctVerifiedStatus",
 				message: err.message,
 				color: "yellow"
 			}
