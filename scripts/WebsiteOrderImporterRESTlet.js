@@ -277,6 +277,7 @@ function(record, search, teamsLog, email, url) {
                 ["SiteOrderNumber", "custbody_ss_brontoid"],
                 ["JobName", "custbody61"],
                 ["DiscountNames", "custbody209"],
+                ["TotalDiscount", "custbody9"],
                 ["AltOrderNumber", "custbody270"],
                 ["CheckoutTypeId", "custbody40"],
                 ["UserTypeId", "custbody28"],
